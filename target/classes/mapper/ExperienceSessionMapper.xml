@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guzheng.explore.mapper.ExperienceSessionMapper">
+
+    <resultMap id="BaseResultMap" type="com.guzheng.explore.entity.ExperienceSession">
+        <id column="id" property="id"/>
+        <result column="session_token" property="sessionToken"/>
+        <result column="started_at" property="startedAt"/>
+        <result column="ended_at" property="endedAt"/>
+    </resultMap>
+
+    <select id="selectBySessionToken" resultMap="BaseResultMap">
+        SELECT id, session_token, started_at, ended_at
+        FROM experience_session
+        WHERE session_token = #{sessionToken}
+    </select>
+</mapper>

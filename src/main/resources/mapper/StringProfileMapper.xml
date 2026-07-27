@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guzheng.explore.mapper.StringProfileMapper">
+
+    <resultMap id="BaseResultMap" type="com.guzheng.explore.entity.StringProfile">
+        <id column="part_id" property="partId"/>
+        <result column="string_no" property="stringNo"/>
+        <result column="midi_note" property="midiNote"/>
+        <result column="register_name" property="registerName"/>
+    </resultMap>
+
+    <select id="selectByStringNo" resultMap="BaseResultMap">
+        SELECT part_id, string_no, midi_note, register_name
+        FROM string_profile
+        WHERE string_no = #{stringNo}
+    </select>
+</mapper>

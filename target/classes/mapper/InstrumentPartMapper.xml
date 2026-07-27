@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guzheng.explore.mapper.InstrumentPartMapper">
+
+    <resultMap id="BaseResultMap" type="com.guzheng.explore.entity.InstrumentPart">
+        <id column="id" property="id"/>
+        <result column="part_code" property="partCode"/>
+        <result column="part_kind" property="partKind"/>
+        <result column="name" property="name"/>
+        <result column="summary" property="summary"/>
+        <result column="function_text" property="functionText"/>
+        <result column="position_text" property="positionText"/>
+        <result column="performance_relation" property="performanceRelation"/>
+        <result column="display_order" property="displayOrder"/>
+        <result column="enabled" property="enabled"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, part_code, part_kind, name, summary, function_text, position_text, performance_relation, display_order, enabled
+        FROM instrument_part
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectEnabledPartsByKind" resultMap="BaseResultMap">
+        SELECT id, part_code, part_kind, name, summary, function_text, position_text, performance_relation, display_order, enabled
+        FROM instrument_part
+        WHERE part_kind = #{partKind}
+          AND enabled = TRUE
+        ORDER BY display_order ASC, id ASC
+    </select>
+
+    <select id="selectStringPartByStringNo" resultMap="BaseResultMap">
+        SELECT p.id, p.part_code, p.part_kind, p.name, p.summary, p.function_text, p.position_text, p.performance_relation, p.display_order, p.enabled
+        FROM instrument_part p
+        INNER JOIN string_profile s ON s.part_id = p.id
+        WHERE s.string_no = #{stringNo}
+          AND p.enabled = TRUE
+    </select>
+</mapper>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guzheng.explore.mapper.HistoryEntryMapper">
+
+    <resultMap id="BaseResultMap" type="com.guzheng.explore.entity.HistoryEntry">
+        <id column="id" property="id"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="entry_kind" property="entryKind"/>
+        <result column="title" property="title"/>
+        <result column="time_label" property="timeLabel"/>
+        <result column="start_year" property="startYear"/>
+        <result column="end_year" property="endYear"/>
+        <result column="content" property="content"/>
+        <result column="cover_asset_id" property="coverAssetId"/>
+        <result column="display_order" property="displayOrder"/>
+        <result column="enabled" property="enabled"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, parent_id, entry_kind, title, time_label, start_year, end_year, content, cover_asset_id, display_order, enabled
+        FROM history_entry
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectEnabledPeriods" resultMap="BaseResultMap">
+        SELECT id, parent_id, entry_kind, title, time_label, start_year, end_year, content, cover_asset_id, display_order, enabled
+        FROM history_entry
+        WHERE entry_kind = 'PERIOD'
+          AND enabled = TRUE
+        ORDER BY display_order ASC, id ASC
+    </select>
+
+    <select id="selectChildrenByParentId" resultMap="BaseResultMap">
+        SELECT id, parent_id, entry_kind, title, time_label, start_year, end_year, content, cover_asset_id, display_order, enabled
+        FROM history_entry
+        WHERE parent_id = #{parentId}
+          AND enabled = TRUE
+        ORDER BY display_order ASC, id ASC
+    </select>
+</mapper>

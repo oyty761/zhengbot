@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guzheng.explore.mapper.SongMapper">
+
+    <resultMap id="BaseResultMap" type="com.guzheng.explore.entity.Song">
+        <id column="work_id" property="workId"/>
+        <result column="artist_name" property="artistName"/>
+        <result column="origin_period" property="originPeriod"/>
+        <result column="background_text" property="backgroundText"/>
+        <result column="style_text" property="styleText"/>
+        <result column="featured_excerpt" property="featuredExcerpt"/>
+    </resultMap>
+
+    <select id="selectByWorkId" resultMap="BaseResultMap">
+        SELECT work_id, artist_name, origin_period, background_text, style_text, featured_excerpt
+        FROM song
+        WHERE work_id = #{workId}
+    </select>
+</mapper>

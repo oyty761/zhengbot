@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guzheng.explore.mapper.PlayableWorkMapper">
+
+    <resultMap id="BaseResultMap" type="com.guzheng.explore.entity.PlayableWork">
+        <id column="id" property="id"/>
+        <result column="work_kind" property="workKind"/>
+        <result column="title" property="title"/>
+        <result column="playable_status" property="playableStatus"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, work_kind, title, playable_status, created_at, updated_at
+        FROM playable_work
+        WHERE id = #{id}
+    </select>
+</mapper>
