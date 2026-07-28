@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZhengBot — 古筝智能演奏机器人</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f8f5f0;--card:#ffffff;--text:#2c2416;--text-sub:#7a7265;
+    --primary:#b8733c;--primary-light:#d4955c;--accent:#3a7d5c;
+    --border:#e8e2d8;--shadow:0 2px 12px rgba(44,36,22,.06);
+    --shadow-hover:0 8px 32px rgba(44,36,22,.10);--radius:16px;
+    --font:'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
+  }
+  body{
+    font-family:var(--font);background:var(--bg);color:var(--text);
+    line-height:1.6;min-height:100vh;overflow-x:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .container{max-width:1100px;margin:0 auto;padding:60px 40px 40px}
+  .header{text-align:center;margin-bottom:64px}
+  .logo{font-size:56px;margin-bottom:16px;display:inline-block;will-change:transform}
+  h1{font-size:36px;font-weight:700;letter-spacing:.02em}
+  .subtitle{font-size:16px;color:var(--text-sub);margin-top:8px;font-weight:400}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+  .card{
+    background:var(--card);border-radius:var(--radius);padding:40px 32px;
+    text-decoration:none;color:inherit;position:relative;overflow:hidden;
+    box-shadow:var(--shadow);border:1px solid var(--border);
+    transition:box-shadow .3s,border-color .3s;will-change:transform;display:block;
+  }
+  .card:hover{box-shadow:var(--shadow-hover);border-color:var(--primary-light)}
+  .card-icon{font-size:40px;margin-bottom:20px;display:inline-block}
+  .card-title{font-size:22px;font-weight:700;margin-bottom:8px}
+  .card-desc{font-size:14px;color:var(--text-sub);line-height:1.7}
+  .card-badge{display:inline-block;margin-top:16px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:var(--bg);color:var(--text-sub)}
+  .card.coming-soon{opacity:.65;cursor:default}
+  .card.coming-soon:hover{box-shadow:var(--shadow);border-color:var(--border)}
+  .card.coming-soon .card-badge{background:#f0ede8;color:#b8b0a4}
+  @media(max-width:700px){.cards{grid-template-columns:1fr}.container{padding:32px 20px 24px}h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <div class="logo" id="logo">🎵</div>
+    <h1>ZhengBot</h1>
+    <p class="subtitle">古筝智能演奏机器人 · 交互体验平台</p>
+  </header>
+  <div class="cards">
+    <a class="card" href="composition.html" id="card-comp">
+      <div class="card-icon">🎼</div>
+      <div class="card-title">自由创作</div>
+      <div class="card-desc">在虚拟乐谱上自由拖拽音符，借助 AI 智能补全旋律，编译后由机器人实时演奏你的作品。</div>
+      <div class="card-badge">拖拽编曲 · AI 补全 · 实时演奏</div>
+    </a>
+    <a class="card" href="explore.html" id="card-explore">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">乐器探秘</div>
+      <div class="card-desc">探索古筝的立体结构与历史脉络——从琴弦琴码到千年传承，试听每一根弦的音色。</div>
+      <div class="card-badge">3D 结构 · 历史时间轴 · 试听</div>
+    </a>
+    <a class="card coming-soon" href="songbook.html">
+      <div class="card-icon">🎶</div>
+      <div class="card-title">我要点歌</div>
+      <div class="card-desc">浏览曲库、搜索曲目或根据风格情绪智能推荐，一键发起机器人演奏。</div>
+      <div class="card-badge">即将开放</div>
+    </a>
+    <a class="card coming-soon" href="voice.html">
+      <div class="card-icon">🎙️</div>
+      <div class="card-title">语音交互</div>
+      <div class="card-desc">通过语音说出你想听的曲目或风格，系统智能识别并为你推荐合适的演奏。</div>
+      <div class="card-badge">即将开放</div>
+    </a>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const tl=gsap.timeline();
+  tl.from('#logo',{y:-40,opacity:0,duration:.6,ease:'back.out(1.7)'})
+    .from('h1',{y:-20,opacity:0,duration:.4,ease:'power2.out'},'-.3')
+    .from('.subtitle',{y:-10,opacity:0,duration:.3,ease:'power2.out'},'-.2')
+    .from('.card',{y:60,opacity:0,duration:.5,stagger:.12,ease:'power3.out'},'-.1');
+  document.querySelectorAll('.card:not(.coming-soon)').forEach(c=>{
+    c.addEventListener('mouseenter',()=>gsap.to(c,{y:-6,scale:1.02,duration:.3,ease:'power2.out'}));
+    c.addEventListener('mouseleave',()=>gsap.to(c,{y:0,scale:1,duration:.3,ease:'power2.out'}));
+  });
+});
+</script>
+</body>
+</html>
