@@ -102,17 +102,26 @@ S = {
 **网格常量**：
 
 ```javascript
-BEAT_W = 48;   // 每拍像素宽度
+BEAT_W = 96;   // 每拍像素宽度（2026-07-29 由 48 加宽，容纳细分落点）
+SUB = 4;       // 每拍细分数（十六分音符精度）
+SUB_W = 24;    // 每个细分格宽度 = BEAT_W / SUB
 ROW_H = 26;    // 每行（弦）像素高度
 LABEL_W = 38;  // 左侧弦标签宽度
 N_STRINGS = 21; // 古筝 21 弦
 ```
 
 **网格数学**：
-- `totalBeats() = measures × beatsPerMeasure()` （总列数）
+- `totalBeats() = measures × beatsPerMeasure()` （总拍数）
 - `beatsPerMeasure() = timeSig.num` （每小节拍数）
+- `totalCols() = totalBeats() × SUB` （总列数，列为细分格）
+- 细分格序号 → 拍位置：`subToBeat(sub) = (sub-1)/SUB + 1`（支持 0.25 步进小数）
 - 音符位置：`left = LABEL_W + (startBeat - 1) × BEAT_W`
-- 音符宽度：`width = durBeats × BEAT_W`，最小 `BEAT_W/4`
+- 音符宽度：`width = durBeats × BEAT_W`，最小 `SUB_W`
+
+**时值映射（标准乐理）**：
+- 全音符 = 整小节（`beatsPerMeasure()` 拍）、二分 = 2 拍、四分 = 1 拍、八分 = ½ 拍、十六分 = ¼ 拍
+- `duration_tick = durBeats × ticksPerBeat`，与后端 480 ticks/拍 约定一致
+- 拍线（每 4 细分格）与小节线分级加粗：`.beat-line` / `.bar-line`
 
 **拖拽逻辑**（HTML5 DnD）：
 - 面板音符 `dragstart` 时 `dataTransfer.setData('text/plain', 'new:' + dur)`
@@ -146,7 +155,7 @@ N_STRINGS = 21; // 古筝 21 弦
 **⚠️ 注意**：
 - 后端 composition Controller 不存在，目前只能离线模式使用
 - 离线模式下音符数据存内存不持久化
-- `buildGrid()` 每次重建整个网格 DOM + 重新 bind 事件，频繁切换拍号/小节数会卡
+- `buildGrid()` 每次重建整个网格 DOM，但格子事件已改为 `grid-body` 事件委托（2026-07-29 修复），切换拍号/小节数不再重复绑定上千个监听器
 - 音符数很多时 `renderNotes()` 全量重建 `<div>`（未做虚拟化）
 
 ---
@@ -245,6 +254,36 @@ backend/src/main/java/com/guzheng/explore/
 ```
 
 **Jackson 序列化**：Java camelCase → JSON snake_case（Spring Boot 默认配置已启用）
+
+---
+
+## 修复记录
+
+### 2026-07-29（黄胤锦分工范围：首页 / 自由创作 / 乐器探秘）
+
+**composition.html**
+1. **性能**：格子 dragover/dragleave/drop/click 由每格 4 个监听器（16 小节 6/8 拍时 2688 格 × 4 ≈ 1 万个）改为 `grid-body` 事件委托；`buildGrid()` 内层 `innerHTML+=` 循环拼接改为数组 join 一次性写入；删除死变量 `isBarEnd`
+2. **bug**：AI 补全 chip 接受/拒绝后从 DOM 移除，`decideAi()` 再用 `querySelectorAll` 下标定位会错位（点后面的 chip 动画作用到错误的 chip 上）→ chip 加 `data-idx`，按属性定位
+3. **bug**：拖放新音符后异步回填 `note_id` 用 `S.notes[S.notes.length-1]`，快速连拖时响应乱序会把 id 写到错的音符上 → 改为闭包直接引用 note 对象
+4. **bug**：小节数 ± 按钮定义了 `:disabled` 样式但从不禁用 → 边界（2/16）时禁用
+5. **样式**：`.controls` sticky `top:52px` 与 topbar 实际高度 58px 不符会露 6px 缝 → 改为 58px
+
+**explore.html**
+1. **bug**：琴弦试听每次 `new Audio()`，连点不同弦会多个音频叠播 → 全局 `curAudio` 单例，切弦前停掉上一个
+2. 删除死变量 `waveTimer`
+
+**index.html**：检查无 bug，未改动。
+
+### 2026-07-29 二更（网格细分）
+
+**composition.html**
+1. 每拍宽度 48→96px，每拍细分 4 个落点（十六分音符精度），一拍内可放 2 个八分 / 4 个十六分
+2. 时值保持标准乐理映射：全=整小节、二分=2拍、四分=1拍、八分=½拍、十六分=¼拍（新增十六分音符到音符面板）
+3. 落点/点击删除精度同步到 0.25 拍（`onCellClick` 容差 0.6→0.13，小于半个细分格）
+4. 格子改挂 `data-sub`（细分格序号），事件委托里 `subToBeat()` 换算小数拍位置；删除失效的 `getCellEl()`
+5. 过窄音符（<44px）不渲染文字标签，避免溢出
+
+**songbook.html / voice.html**：属于于昊喆分工（见 `开发日志.md`），保持占位页原样，未动。
 
 ---
 

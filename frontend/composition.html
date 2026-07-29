@@ -26,7 +26,7 @@
   .topbar .spacer{flex:1}
 
   /* controls bar */
-  .controls{display:flex;align-items:center;gap:18px;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;position:sticky;top:52px;z-index:19}
+  .controls{display:flex;align-items:center;gap:18px;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;position:sticky;top:58px;z-index:19}
   .ctrl-group{display:flex;align-items:center;gap:6px}
   .ctrl-label{font-size:11px;color:var(--text-sub);white-space:nowrap;font-weight:600}
   .sig-btn{padding:5px 14px;border-radius:7px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font);color:var(--text);transition:all .15s}
@@ -62,6 +62,7 @@
   .palette-note.h{background:#d5e8df;color:#3a7d5c}
   .palette-note.w{background:#d5e0f0;color:#3a5c8a}
   .palette-note.e{background:#fce4ec;color:#c0392b}
+  .palette-note.sx{background:#e8e2f0;color:#6b5b8a}
 
   /* workspace */
   .workspace{flex:1;min-width:0}
@@ -89,7 +90,8 @@
   }
   .grid-cell:hover{background:#fdf7f0!important}
   .grid-cell.drop-target{background:#fdf0d5!important;box-shadow:inset 0 0 0 2px var(--primary)}
-  .grid-cell.bar-line{border-right:2px solid var(--border)}
+  .grid-cell.beat-line{border-right:1px solid var(--border)}
+  .grid-cell.bar-line{border-right:2px solid #d8d0c2}
 
   /* string labels */
   .string-label{
@@ -203,7 +205,7 @@
   <!-- palette -->
   <div class="palette" id="palette">
     <h4>音符</h4>
-    <div class="palette-note w" draggable="true" data-dur="whole" title="全音符 · 4拍">
+    <div class="palette-note w" draggable="true" data-dur="whole" title="全音符 · 整小节">
       𝅝<span class="dur-label">全</span>
     </div>
     <div class="palette-note h" draggable="true" data-dur="half" title="二分音符 · 2拍">
@@ -214,6 +216,9 @@
     </div>
     <div class="palette-note e" draggable="true" data-dur="eighth" title="八分音符 · ½拍">
       ♪<span class="dur-label">八分</span>
+    </div>
+    <div class="palette-note sx" draggable="true" data-dur="sixteenth" title="十六分音符 · ¼拍">
+      ♬<span class="dur-label">十六分</span>
     </div>
   </div>
 
@@ -276,69 +281,77 @@ async function post(p,b={}){try{const r=await fetch(API+p,{method:'POST',headers
 async function put(p,b={}){try{const r=await fetch(API+p,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return await r.json()}catch(e){return{code:500,message:'网络错误'}}}
 
 /* ═══════════════════════ GRID MATH ═══════════════════════ */
-const BEAT_W=48; // px per beat
+const BEAT_W=96; // px per beat（加宽以容纳细分落点）
+const SUB=4;     // 每拍细分数（十六分音符精度）
+const SUB_W=BEAT_W/SUB; // 每个细分格 24px
 const ROW_H=26;  // px per string row
 const LABEL_W=38;
 const N_STRINGS=21;
 
 function beatsPerMeasure(){return S.timeSig.num}
 function totalBeats(){return S.measures*beatsPerMeasure()}
-function totalCols(){return totalBeats()}
-function gridWidth(){return totalCols()*BEAT_W+LABEL_W}
+function totalCols(){return totalBeats()*SUB}
+function gridWidth(){return totalCols()*SUB_W+LABEL_W}
+/* 细分格序号（1 起）→ 拍位置（支持 0.25 步进的小数） */
+function subToBeat(sub){return (sub-1)/SUB+1}
+function fmtBeat(b){return Math.round(b*100)/100}
 
 /* ═══════════════════════ BUILD GRID ═══════════════════════ */
+/* 格子事件统一走 grid-body 委托，buildGrid 只负责重建 DOM，不逐个绑监听器 */
+const gbEl=document.getElementById('grid-body');
+gbEl.addEventListener('dragover',e=>{
+  const cell=e.target.closest('.grid-cell');if(!cell)return;
+  e.preventDefault();cell.classList.add('drop-target');
+});
+gbEl.addEventListener('dragleave',e=>{
+  const cell=e.target.closest('.grid-cell');if(cell)cell.classList.remove('drop-target');
+});
+gbEl.addEventListener('drop',e=>{
+  const cell=e.target.closest('.grid-cell');if(!cell)return;
+  e.preventDefault();cell.classList.remove('drop-target');
+  onDrop(e,parseInt(cell.dataset.string),subToBeat(parseInt(cell.dataset.sub)));
+});
+gbEl.addEventListener('click',e=>{
+  const cell=e.target.closest('.grid-cell');if(!cell)return;
+  onCellClick(parseInt(cell.dataset.string),subToBeat(parseInt(cell.dataset.sub)));
+});
+
 function buildGrid(){
-  const bpm=totalBeats();
+  const tb=totalBeats();
   const cols=totalCols();
+  const bpmNow=beatsPerMeasure();
 
   // measure ruler
   const mr=document.getElementById('meas-ruler');
-  mr.innerHTML='<div style="width:'+LABEL_W+'px;flex-shrink:0;border-right:1px solid var(--border)"></div>';
+  let mrHtml='<div style="width:'+LABEL_W+'px;flex-shrink:0;border-right:1px solid var(--border)"></div>';
   for(let m=1;m<=S.measures;m++){
-    mr.innerHTML+=`<div class="meas-label" style="width:${beatsPerMeasure()*BEAT_W}px">第 ${m} 小节</div>`;
+    mrHtml+=`<div class="meas-label" style="width:${bpmNow*BEAT_W}px">第 ${m} 小节</div>`;
   }
+  mr.innerHTML=mrHtml;
 
   // beat ruler
   const br=document.getElementById('beat-ruler');
-  br.innerHTML='<div style="width:'+LABEL_W+'px;flex-shrink:0;border-right:1px solid var(--border)"></div>';
-  for(let b=1;b<=bpm;b++){
-    const isBarEnd=b%beatsPerMeasure()===0;
-    br.innerHTML+=`<div class="beat-cell" style="width:${BEAT_W}px">${b}</div>`;
+  let brHtml='<div style="width:'+LABEL_W+'px;flex-shrink:0;border-right:1px solid var(--border)"></div>';
+  for(let b=1;b<=tb;b++){
+    brHtml+=`<div class="beat-cell" style="width:${BEAT_W}px">${b}</div>`;
   }
+  br.innerHTML=brHtml;
 
-  // grid body
-  const gb=document.getElementById('grid-body');
-  gb.innerHTML='';
+  // grid body：每拍 SUB 个细分格；拍线、小节线分级加粗
+  const rows=[];
   for(let s=1;s<=N_STRINGS;s++){
-    const row=document.createElement('div');row.className='grid-row';row.dataset.string=s;
-    // label
-    const label=document.createElement('div');label.className='string-label';label.textContent='弦'+s;
-    row.appendChild(label);
-    // cells
+    let cells='';
     for(let c=1;c<=cols;c++){
-      const cell=document.createElement('div');cell.className='grid-cell';
-      cell.dataset.string=s;cell.dataset.beat=c;
-      cell.style.width=BEAT_W+'px';
-      if(c%beatsPerMeasure()===0)cell.classList.add('bar-line');
-      // drop handlers
-      cell.addEventListener('dragover',e=>{e.preventDefault();cell.classList.add('drop-target')});
-      cell.addEventListener('dragleave',()=>cell.classList.remove('drop-target'));
-      cell.addEventListener('drop',e=>{e.preventDefault();cell.classList.remove('drop-target');onDrop(e,s,c)});
-      // click to delete
-      cell.addEventListener('click',()=>onCellClick(s,c));
-      row.appendChild(cell);
+      const isBeatEnd=c%SUB===0;
+      const isBarEnd=c%(SUB*bpmNow)===0;
+      cells+=`<div class="grid-cell${isBarEnd?' bar-line':isBeatEnd?' beat-line':''}" data-string="${s}" data-sub="${c}" style="width:${SUB_W}px"></div>`;
     }
-    gb.appendChild(row);
+    rows.push(`<div class="grid-row" data-string="${s}"><div class="string-label">弦${s}</div>${cells}</div>`);
   }
+  gbEl.innerHTML=rows.join('');
 
-  document.getElementById('total-beats-display').textContent=bpm;
+  document.getElementById('total-beats-display').textContent=tb;
   renderNotes();
-}
-
-function getCellEl(string,beat){
-  const row=document.querySelector('.grid-row[data-string="'+string+'"]');
-  if(!row)return null;
-  return row.querySelector('.grid-cell[data-beat="'+beat+'"]');
 }
 
 /* ═══════════════════════ MEASURE BOUNDARY ═══════════════════════ */
@@ -386,9 +399,9 @@ function renderNotes(){
     el.dataset.noteIndex=i;
     el.style.left=left+'px';el.style.top='1px';
     el.style.width=w+'px';el.style.height=(ROW_H-2)+'px';
-    el.textContent=isAI?'AI':'弦'+str;
+    el.textContent=w>=44?(isAI?'AI':'弦'+str):'';
     const label=isAI?'[AI] ':'';
-    el.title=label+'弦'+str+' · '+(Math.round(startBeat*10)/10)+'拍 · '+(Math.round(durBeats*10)/10)+'拍 · 拖拽移动/拖出删除';
+    el.title=label+'弦'+str+' · 第'+fmtBeat(startBeat)+'拍 · '+durLabel(durBeats)+'音符（'+fmtBeat(durBeats)+'拍）· 拖拽移动/拖出删除';
     // drag to move
     el.addEventListener('dragstart',e=>{
       e.dataTransfer.setData('text/plain','move:'+i);
@@ -426,11 +439,22 @@ bpmInput.addEventListener('change',()=>{let v=parseInt(bpmInput.value)||120;v=Ma
 
 // measures
 const measVal=document.getElementById('meas-val');
-document.getElementById('meas-plus').addEventListener('click',()=>{if(S.measures<16){S.measures++;measVal.textContent=S.measures;buildGrid()}});
-document.getElementById('meas-minus').addEventListener('click',()=>{if(S.measures>2){S.measures--;measVal.textContent=S.measures;buildGrid()}});
+function updateMeasBtns(){
+  document.getElementById('meas-minus').disabled=S.measures<=2;
+  document.getElementById('meas-plus').disabled=S.measures>=16;
+}
+document.getElementById('meas-plus').addEventListener('click',()=>{if(S.measures<16){S.measures++;measVal.textContent=S.measures;updateMeasBtns();buildGrid()}});
+document.getElementById('meas-minus').addEventListener('click',()=>{if(S.measures>2){S.measures--;measVal.textContent=S.measures;updateMeasBtns();buildGrid()}});
 
 /* ═══════════════════════ DRAG & DROP ═══════════════════════ */
-const durMap={quarter:1,half:2,whole:null/*computed per drop*/,eighth:.5};
+const durMap={sixteenth:.25,eighth:.5,quarter:1,half:2,whole:null/*computed per drop*/};
+function durLabel(d){
+  if(d<0.5)return'十六分';
+  if(d<1)return'八分';
+  if(d<2)return'四分';
+  if(d<beatsPerMeasure())return'二分';
+  return'全';
+}
 
 document.querySelectorAll('.palette-note').forEach(note=>{
   note.addEventListener('dragstart',e=>{
@@ -455,15 +479,17 @@ function onDrop(e,string,beat){
     }
     const startTick=(beat-1)*S.ticksPerBeat;
     const durTick=Math.round(durBeats*S.ticksPerBeat);
-    S.notes.push({string_part_id:parseInt(string),start_tick:startTick,duration_tick:durTick,velocity:80});
+    const note={string_part_id:parseInt(string),start_tick:startTick,duration_tick:durTick,velocity:80};
+    S.notes.push(note);
     renderNotes();
     if(!S.offline){
-      post('/composition/note',{composition_id:S.compId,string_part_id:parseInt(string),start_tick:startTick,duration_tick:durTick,velocity:80}).then(r=>{
-        if(r.code===200&&r.data){S.notes[S.notes.length-1].note_id=r.data.note_id}
+      // 闭包引用 note，避免快速连拖时响应乱序把 note_id 写到错的音符上
+      post('/composition/note',{composition_id:S.compId,string_part_id:note.string_part_id,start_tick:startTick,duration_tick:durTick,velocity:80}).then(r=>{
+        if(r.code===200&&r.data){note.note_id=r.data.note_id}
       });
     }
-    const label=durBeats<1?'八分':durBeats<2?'四分':durBeats<beatsPerMeasure()?'二分':'全';
-    toast(label+'音符 · 弦'+string+' · 第'+beat+'拍'+(S.offline?' (离线)':''));
+    const label=durLabel(durBeats);
+    toast(label+'音符 · 弦'+string+' · 第'+fmtBeat(beat)+'拍'+(S.offline?' (离线)':''));
   }else if(raw.startsWith('move:')){
     // ── grid → move existing note ──
     const idx=parseInt(raw.slice(5));
@@ -482,14 +508,14 @@ function onDrop(e,string,beat){
         if(r.code===200&&r.data){note.note_id=r.data.note_id}
       });
     }
-    toast('音符已移动 · 弦'+string+' · 第'+beat+'拍');
+    toast('音符已移动 · 弦'+string+' · 第'+fmtBeat(beat)+'拍');
   }
 }
 
 function onCellClick(string,beat){
-  // find notes at this cell and remove
+  // 只删起点正好落在本细分格（0.25 拍）上的音符，容差小于半个细分格
   const before=S.notes.length;
-  S.notes=S.notes.filter(n=>!(n.string_part_id===parseInt(string)&&Math.abs((n.start_tick/S.ticksPerBeat)+1-beat)<0.6));
+  S.notes=S.notes.filter(n=>!(n.string_part_id===parseInt(string)&&Math.abs((n.start_tick/S.ticksPerBeat)+1-beat)<0.13));
   if(S.notes.length<before){renderNotes();toast('音符已移除')}
 }
 
@@ -548,7 +574,7 @@ async function requestAi(){
   if(r.code===200&&r.data){
     S.aiCompletionId=r.data.completion_id;S.aiNotes=r.data.suggested_notes||[];
     c.innerHTML=S.aiNotes.map((n,i)=>`
-      <div class="ai-chip">
+      <div class="ai-chip" data-idx="${i}">
         <span class="info">弦${n.string_part_id} · ${n.start_tick}t · ${n.duration_tick}t</span>
         <button class="mini-btn ok" onclick="decideAi(${i},'accept')">接受</button>
         <button class="mini-btn no" onclick="decideAi(${i},'reject')">拒绝</button>
@@ -563,8 +589,9 @@ async function decideAi(idx,action){
   if(!S.aiCompletionId)return;
   const r=await put('/composition/ai-completion/'+S.aiCompletionId+'/decision',{composition_id:S.compId,action:action,note_index:idx});
   if(r.code===200){
-    const chips=document.querySelectorAll('.ai-chip');
-    if(chips[idx]){gsap.to(chips[idx],{opacity:0,x:action==='accept'?30:-30,duration:.2,ease:'power2.in',onComplete:()=>{chips[idx].remove();if(action==='accept'){S.aiNotes[idx].ai_completion_no=S.aiCompletionId;S.notes.push(S.aiNotes[idx]);renderNotes()}}})}
+    // 按 data-idx 定位 chip：此前被移除的 chip 不会造成后续索引错位
+    const chip=document.querySelector('.ai-chip[data-idx="'+idx+'"]');
+    if(chip){gsap.to(chip,{opacity:0,x:action==='accept'?30:-30,duration:.2,ease:'power2.in',onComplete:()=>{chip.remove();if(action==='accept'){S.aiNotes[idx].ai_completion_no=S.aiCompletionId;S.notes.push(S.aiNotes[idx]);renderNotes()}}})}
     toast(action==='accept'?'已接受补全':'已拒绝补全');
   }else{toast('操作失败：'+(r.message||'未知错误'))}
 }
@@ -617,6 +644,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   gsap.from('.palette',{x:-20,opacity:0,duration:.4,ease:'power2.out',delay:.15});
   gsap.from('.staff-container',{y:20,opacity:0,duration:.4,ease:'power2.out',delay:.15});
   gsap.from('.panel',{x:20,opacity:0,duration:.35,stagger:.06,ease:'power2.out',delay:.2});
+  updateMeasBtns();
   buildGrid();
 });
 </script>

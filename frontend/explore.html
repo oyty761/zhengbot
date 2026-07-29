@@ -232,14 +232,16 @@ async function selPart(pid){
   }
 }
 
-let waveTimer=null;
+let curAudio=null;
 async function hitString(sn){
   S.selStringNo=sn;document.querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('sel',parseInt(b.dataset.sn)===sn));
   await get(`/instrument-explore/structure/string-highlight?string_no=${sn}&action=highlight`);
   const r=await get(`/instrument-explore/structure/string-highlight?string_no=${sn}&action=play`);
+  // 停掉上一根弦的试听，避免连点时多个音频叠播
+  if(curAudio){curAudio.pause();curAudio.currentTime=0;curAudio=null}
   if(r.code===200&&r.data&&r.data.audio_url){
     showWave(`弦 ${sn} · ${r.data.pitch||''} · ${r.data.region||''}`);
-    try{const a=new Audio(r.data.audio_url);a.play().catch(()=>{});a.onended=hideWave}else{setTimeout(hideWave,1400)}
+    try{curAudio=new Audio(r.data.audio_url);curAudio.play().catch(()=>{});curAudio.onended=()=>{curAudio=null;hideWave()}}catch(e){setTimeout(hideWave,1400)}
   }else{showWave(`弦 ${sn} (试听资源未加载)`);setTimeout(hideWave,1200)}
 }
 
