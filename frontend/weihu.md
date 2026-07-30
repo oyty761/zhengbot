@@ -13,8 +13,8 @@ ZhengBot 是一个古筝智能演奏机器人的 Web 交互平台。前端为纯
 | `index.html` | 首页，4 张模块卡，GSAP 入场动画 | ✅ 完成 |
 | `composition.html` | 自由创作：piano-roll 网格编曲 + 拖拽音符 + AI 补全 + 演奏 | ✅ 可用（后端未实现时走离线模式） |
 | `explore.html` | 乐器探秘：立体结构讲解 + 历史时间轴 + 琴弦试听 | ✅ 完成，后端已有 |
-| `songbook.html` | 我要点歌：占位页，列出 10 个已规划 API | ⏳ 待开发 |
-| `voice.html` | 语音交互：占位页，列出 2 个已规划 API | ⏳ 待开发 |
+| `songbook.html` | 我要点歌：占位页，列出 10 个已规划 API | ✅ 可用 |
+| `voice.html` | 语音交互：占位页，列出 2 个已规划 API | ✅ 可用 |
 
 ---
 
