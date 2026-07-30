@@ -1,69 +1,423 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我要点歌 — ZhengBot</title>
-<style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --bg:#f8f5f0;--card:#ffffff;--text:#2c2416;--text-sub:#7a7265;
-    --primary:#b8733c;--border:#e8e2d8;--shadow:0 2px 12px rgba(44,36,22,.06);
-    --radius:14px;
-    --font:'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
-  }
-  body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
-  .topbar{
-    display:flex;align-items:center;gap:16px;padding:16px 28px;
-    background:var(--card);border-bottom:1px solid var(--border);box-shadow:var(--shadow);
-    position:sticky;top:0;z-index:10;
-  }
-  .back-link{text-decoration:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .2s}
-  .back-link:hover{background:#ede8df}
-  .topbar h2{font-size:19px;font-weight:700}
-  .topbar .breadcrumb{font-size:13px;color:var(--text-sub);margin-left:auto}
-  .main{max-width:700px;margin:0 auto;padding:60px 32px;text-align:center}
-  .icon{font-size:72px;opacity:.35;margin-bottom:18px}
-  h3{font-size:22px;margin-bottom:8px}
-  p{font-size:14px;color:var(--text-sub);line-height:1.8;margin-bottom:20px}
-  .api-list{text-align:left;background:var(--card);border-radius:var(--radius);padding:20px 24px;border:1px solid var(--border);margin-top:12px}
-  .api-list h4{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)}
-  .api-list .ep{font-size:12px;color:var(--text-sub);padding:3px 0;font-family:monospace}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我要点歌 — ZhengBot</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f8f5f0; --card: #ffffff; --text: #2c2416; --text-sub: #7a7265;
+            --primary: #b8733c; --primary-light: #d4955c; --border: #e8e2d8;
+            --shadow: 0 2px 12px rgba(44,36,22,.06); --radius: 14px;
+            --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow-y: scroll;}
+
+        /* 顶栏 */
+        .topbar {
+            display: flex; align-items: center; gap: 16px; padding: 16px 28px;
+            background: var(--card); border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100;
+        }
+        .back-link {
+            text-decoration: none; width: 38px; height: 38px; border-radius: 50%;
+            border: 1px solid var(--border); background: var(--bg); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: var(--text); transition: .2s;
+        }
+        .back-link:hover { background: #ede8df; }
+        .topbar h2 { font-size: 19px; font-weight: 700; margin: 0; }
+        .topbar .breadcrumb { font-size: 13px; color: var(--text-sub); margin-left: auto; }
+
+        /* 布局容器 */
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 24px; }
+
+        /* Tabs 导航 (动态渲染) */
+        .tabs { display: flex; gap: 32px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+        .tab-btn { padding: 12px 0; cursor: pointer; color: var(--text-sub); font-weight: bold; position: relative; font-size: 16px; }
+        .tab-btn.active { color: var(--primary); }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 2px;
+        }
+
+        /* 搜索/推荐 输入区 */
+        .action-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+        .search-input {
+            flex: 1; padding: 12px 16px; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 15px; background: var(--card); outline: none; transition: border .2s;
+        }
+        .search-input:focus { border-color: var(--primary); }
+        .btn {
+            padding: 0 24px; background: var(--primary); color: #fff; border: none;
+            border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background .2s;
+        }
+        .btn:hover { background: var(--primary-light); }
+        .btn.outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        .btn.outline:hover { background: var(--primary); color: #fff; }
+
+        /* 曲目网格 */
+        .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .song-card {
+            background: var(--card); border-radius: var(--radius); padding: 20px;
+            box-shadow: var(--shadow); border: 1px solid transparent; cursor: pointer; text-align: center; position: relative;
+        }
+        .song-card .cover { font-size: 40px; margin-bottom: 12px; opacity: 0.8; }
+        .song-card h4 { font-size: 16px; margin: 0 0 6px 0; }
+        .song-card p { font-size: 13px; color: var(--text-sub); margin: 0; }
+        .song-card .actions { display: flex; gap: 8px; margin-top: 16px; }
+        .song-card .btn-small { flex: 1; padding: 8px 0; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid var(--primary); transition: .2s; }
+        .song-card .btn-play { background: transparent; color: var(--primary); }
+        .song-card .btn-detail { background: var(--bg); color: var(--text-sub); border: 1px solid var(--border); }
+        .song-card:hover { border-color: var(--border); }
+        .song-card:hover .btn-play { background: var(--primary); color: #fff; }
+
+        /* 底部演奏状态通知栏 (悬浮) */
+        .status-toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); opacity: 0;
+            background: #2c2416; color: #fff; padding: 16px 32px; border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 16px; z-index: 1000;
+        }
+        .status-indicator { width: 10px; height: 10px; border-radius: 50%; background: #4caf50; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); } }
+
+        /* 视图切换 */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* 弹窗样式 (详情 & 反馈) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center; z-index: 2000; opacity: 0;
+        }
+        .modal {
+            background: var(--card); width: 440px; border-radius: var(--radius); padding: 32px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15); position: relative;
+        }
+        .modal h3 { margin-bottom: 16px; font-size: 20px; }
+        .modal .close-btn { position: absolute; top: 20px; right: 24px; cursor: pointer; font-size: 20px; color: var(--text-sub); }
+        .modal .info-p { font-size: 14px; color: var(--text-sub); margin-bottom: 12px; }
+
+        /* 标签选择器 */
+        .tags-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+        .tag {
+            padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 13px;
+            cursor: pointer; color: var(--text-sub); transition: .2s; user-select: none;
+        }
+        .tag.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+    </style>
 </head>
 <body>
 
-<div class="topbar">
-  <a class="back-link" href="index.html">←</a>
-  <h2>我要点歌</h2>
-  <span class="breadcrumb">首页 / 我要点歌</span>
+<div class="topbar gs-header">
+    <a class="back-link" href="index.html">←</a>
+    <h2>我要点歌</h2>
+    <span class="breadcrumb">首页 / 我要点歌</span>
 </div>
 
-<div class="main">
-  <div class="icon">🎶</div>
-  <h3>曲库点歌 · 智能推荐</h3>
-  <p>浏览本地可演奏曲目、按风格情绪搜索推荐、一键发起机器人演奏。<br>该功能正在开发中，敬请期待。</p>
-  <div class="api-list">
-    <h4>已规划接口</h4>
-    <div class="ep">GET  /api/songbook/home</div>
-    <div class="ep">GET  /api/songbook/songs</div>
-    <div class="ep">GET  /api/songbook/songs/{songId}</div>
-    <div class="ep">POST /api/songbook/search</div>
-    <div class="ep">POST /api/songbook/recommendations</div>
-    <div class="ep">POST /api/songbook/alternatives</div>
-    <div class="ep">POST /api/songbook/performances</div>
-    <div class="ep">GET  /api/songbook/performances/{performanceId}</div>
-    <div class="ep">GET  /api/songbook/feedback/descriptors</div>
-    <div class="ep">POST /api/songbook/performances/{performanceId}/feedback</div>
-  </div>
+<div class="container">
+    <!-- 1. 获取点歌首页 GET /api/songbook/home -->
+    <div class="tabs gs-enter" id="dynamicTabs">
+        <!-- JS 动态渲染 -->
+    </div>
+
+    <!-- 视图 1: 曲库与搜索 -->
+    <div id="library-view" class="view-section active">
+        <div class="action-bar gs-enter">
+            <input type="text" id="searchInput" class="search-input" placeholder="输入曲名... (测试搜'不存在'触发替代曲)">
+            <!-- 2. 浏览/筛选曲库 GET /api/songbook/songs -->
+            <button class="btn outline" onclick="app.loadLibrary(true)">本地筛选</button>
+            <!-- 3. 搜索曲目 POST /api/songbook/search (含替代曲逻辑) -->
+            <button class="btn" onclick="app.deepSearch()">全网检索</button>
+        </div>
+        <div class="info-p" id="searchNotice" style="color:var(--primary); display:none; margin-bottom:16px;"></div>
+        <div class="song-grid" id="libraryGrid"></div>
+    </div>
+
+    <!-- 视图 2: 智能推荐 -->
+    <div id="recommend-view" class="view-section">
+        <div class="action-bar gs-enter">
+            <input type="text" id="recInput" class="search-input" placeholder="描述场景 (如: 适合读书听的音乐)...">
+            <!-- 4. 智能推荐 POST /api/songbook/recommendations -->
+            <button class="btn" onclick="app.getRecommendations()">生成推荐</button>
+        </div>
+        <div class="song-grid" id="recGrid"></div>
+    </div>
+</div>
+
+<!-- 5. 底部状态轮询 (基于 POST 创建任务, GET 轮询状态) -->
+<div class="status-toast" id="statusToast">
+    <div class="status-indicator"></div>
+    <div id="statusText">正在排队...</div>
+</div>
+
+<!-- 6. 曲目详情弹窗 GET /api/songbook/songs/{songId} -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal">
+        <span class="close-btn" onclick="app.closeModal('detailModal')">×</span>
+        <h3 id="detTitle">加载中...</h3>
+        <p class="info-p" id="detAuthor"></p>
+        <p class="info-p"><strong>背景描述：</strong><span id="detDesc"></span></p>
+        <p class="info-p"><strong>曲风流派：</strong><span id="detStyle"></span></p>
+    </div>
+</div>
+
+<!-- 7. 听后反馈弹窗 GET descriptors & POST feedback -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="modal">
+        <span class="close-btn" onclick="app.closeModal('feedbackModal')">×</span>
+        <h3>演奏完成，请评价 🎶</h3>
+        <p class="info-p">你对这首曲子的感受是？(多选)</p>
+        <div class="tags-container" id="feedbackTags"></div>
+        <textarea id="feedbackText" class="search-input" style="width:100%; height:80px; margin-top:10px; resize:none;" placeholder="写下你的文字评价..."></textarea>
+        <button class="btn" style="width:100%; margin-top:16px;" onclick="app.submitFeedback()">提交反馈</button>
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  gsap.from('.topbar',{y:-30,opacity:0,duration:.4,ease:'power2.out'});
-  gsap.from('.main>*',{y:30,opacity:0,duration:.4,stagger:.1,ease:'power2.out',delay:.1});
-});
+    // ==========================================
+    // 核心 API 封装与完整 Mock 数据
+    // ==========================================
+    const API = '/api';
+
+    async function get(path) {
+        try {
+            const res = await fetch(`${API}${path}`);
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch { return mockData.get(path); }
+    }
+
+    async function post(path, body) {
+        try {
+            const res = await fetch(`${API}${path}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch { return mockData.post(path, body); }
+    }
+
+    const mockData = {
+        get: (path) => {
+            if (path === '/songbook/home') return { code: 200, data: [{id:'library-view', name:'曲库点歌'}, {id:'recommend-view', name:'智能推荐'}] };
+            if (path.includes('/songbook/songs/')) { // 详情
+                return { code: 200, data: { bgDesc: '这是一首流传千古的名曲，意境深远。', style: '古风 / 经典' } };
+            }
+            if (path.includes('/songbook/songs')) { // 列表
+                return { code: 200, data: [
+                        { id: 1, title: '渔舟唱晚', author: '古曲' }, { id: 2, title: '高山流水', author: '伯牙' }
+                    ]};
+            }
+            if (path.includes('/songbook/performances/')) { // 状态
+                const statuses = ["QUEUED", "SENDING", "PLAYING", "SUCCEEDED"];
+                return { code: 200, data: { runStatus: statuses[Math.floor(Date.now() / 2000) % statuses.length] } };
+            }
+            if (path.includes('/songbook/feedback/descriptors')) { // 反馈标签
+                return { code: 200, data: [
+                        { descriptorId: 1, name: '轻松', type: 'MOOD' }, { descriptorId: 2, name: '震撼', type: 'MOOD' }, { descriptorId: 3, name: '古风', type: 'STYLE' }
+                    ]};
+            }
+            return { code: 404 };
+        },
+        post: (path, body) => {
+            if (path.includes('/songbook/search')) {
+                if (body.content === '不存在') { // 模拟替代曲触发
+                    return { code: 200, data: { requestKind: 'ALTERNATIVE', list: [{ id: 99, title: '平沙落雁 (替代推荐)', author: '古曲' }] } };
+                }
+                return { code: 200, data: { requestKind: 'NORMAL', list: [{ id: 1, title: `搜到: ${body.content}`, author: '测试' }] } };
+            }
+            if (path.includes('/songbook/recommendations')) { // 智能推荐
+                return { code: 200, data: [{ id: 3, title: '春江花月夜 (AI推荐)', author: '古曲' }] };
+            }
+            if (path.includes('/songbook/alternatives')) { // 主动求替代
+                return { code: 200, data: [{ id: 4, title: '寒鸦戏水 (冷启动)', author: '民间' }] };
+            }
+            if (path.includes('/songbook/performances') && !path.includes('feedback')) { // 创建演奏
+                return { code: 200, data: { performanceId: 301 } };
+            }
+            if (path.includes('feedback')) { // 提交反馈
+                return { code: 200, message: 'success' };
+            }
+            return { code: 404 };
+        }
+    };
+
+    // ==========================================
+    // 业务逻辑 (App)
+    // ==========================================
+    const app = {
+        sessionToken: crypto.randomUUID ? crypto.randomUUID() : 'test-token',
+        currentPerformanceId: null,
+        pollInterval: null,
+        selectedFeedbackTags: [],
+
+        async init() {
+            // 1. 获取首页配置并渲染 Tabs
+            const homeRes = await get('/songbook/home');
+            const tabsHtml = homeRes.data.map((tab, idx) =>
+                `<div class="tab-btn ${idx === 0 ? 'active' : ''}" data-target="${tab.id}">${tab.name}</div>`
+            ).join('');
+            document.getElementById('dynamicTabs').innerHTML = tabsHtml;
+            this.bindTabs();
+
+            this.loadLibrary();
+            this.playEnterAnimations();
+        },
+
+        bindTabs() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+                    const targetId = e.target.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                    gsap.from(`#${targetId} .song-card`, { y: 20, opacity: 0, stagger: 0.08, duration: 0.4 });
+                });
+            });
+        },
+
+        // --- 浏览与搜索 API ---
+        async loadLibrary(isFilter = false) {
+            let url = '/songbook/songs?page=1&size=12';
+            if (isFilter) {
+                const kw = document.getElementById('searchInput').value;
+                url += `&keyword=${encodeURIComponent(kw)}`;
+            }
+            document.getElementById('searchNotice').style.display = 'none';
+            const res = await get(url);
+            this.renderCards('libraryGrid', res.data || []);
+        },
+
+        async deepSearch() {
+            const kw = document.getElementById('searchInput').value;
+            if(!kw) return;
+            const payload = { content: kw, sessionToken: this.sessionToken, inputChannel: "TEXT", limit: 6 };
+            const res = await post('/songbook/search', payload);
+
+            const notice = document.getElementById('searchNotice');
+            if (res.data.requestKind === 'ALTERNATIVE') {
+                notice.innerText = `未找到完全匹配的曲目，已为您建立 ALTERNATIVE 推荐：`;
+                notice.style.display = 'block';
+            } else {
+                notice.style.display = 'none';
+            }
+            this.renderCards('libraryGrid', res.data.list || []);
+        },
+
+        async getRecommendations() {
+            const kw = document.getElementById('recInput').value;
+            const res = await post('/songbook/recommendations', { content: kw, sessionToken: this.sessionToken });
+            this.renderCards('recGrid', res.data || []);
+        },
+
+        // --- 曲目详情 API ---
+        async openDetail(songId, title, author) {
+            this.openModal('detailModal');
+            document.getElementById('detTitle').innerText = title;
+            document.getElementById('detAuthor').innerText = `作者：${author || '未知'}`;
+            document.getElementById('detDesc').innerText = "加载中...";
+
+            const res = await get(`/songbook/songs/${songId}`);
+            document.getElementById('detDesc').innerText = res.data.bgDesc || '暂无描述';
+            document.getElementById('detStyle').innerText = res.data.style || '暂无数据';
+        },
+
+        // --- 演奏任务与反馈流转 API ---
+        async requestPerformance(songId, title) {
+            if(!confirm(`让机器人演奏《${title}》?`)) return;
+            const res = await post('/songbook/performances', { songId: songId, sessionToken: this.sessionToken });
+            if (res.code === 200) {
+                this.currentPerformanceId = res.data.performanceId;
+                this.startPolling(title);
+            }
+        },
+
+        startPolling(title) {
+            if (this.pollInterval) clearInterval(this.pollInterval);
+            gsap.to('#statusToast', { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' });
+            document.getElementById('statusText').innerText = `准备演奏: ${title}`;
+
+            this.pollInterval = setInterval(async () => {
+                const res = await get(`/songbook/performances/${this.currentPerformanceId}`);
+                if (res.code === 200) {
+                    const s = res.data.runStatus;
+                    const sm = { "QUEUED": "已排队...", "SENDING": "发送指令中...", "PLAYING": "演奏中 🎶", "SUCCEEDED": "演奏完成！" };
+                    document.getElementById('statusText').innerText = sm[s] || s;
+
+                    if (['SUCCEEDED', 'FAILED', 'CANCELLED'].includes(s)) {
+                        clearInterval(this.pollInterval);
+                        setTimeout(() => gsap.to('#statusToast', { y: 100, opacity: 0, duration: 0.5 }), 2000);
+                        if (s === 'SUCCEEDED') setTimeout(() => this.openFeedbackForm(), 2200); // 完成后弹反馈
+                    }
+                }
+            }, 2000);
+        },
+
+        async openFeedbackForm() {
+            this.selectedFeedbackTags = [];
+            this.openModal('feedbackModal');
+            const res = await get('/songbook/feedback/descriptors');
+            const tagsHtml = res.data.map(t =>
+                `<div class="tag" onclick="app.toggleTag(this, ${t.descriptorId})">${t.name}</div>`
+            ).join('');
+            document.getElementById('feedbackTags').innerHTML = tagsHtml;
+        },
+
+        toggleTag(el, id) {
+            el.classList.toggle('selected');
+            if(el.classList.contains('selected')) this.selectedFeedbackTags.push(id);
+            else this.selectedFeedbackTags = this.selectedFeedbackTags.filter(x => x !== id);
+        },
+
+        async submitFeedback() {
+            const text = document.getElementById('feedbackText').value;
+            await post(`/songbook/performances/${this.currentPerformanceId}/feedback`, {
+                descriptors: this.selectedFeedbackTags, textComment: text
+            });
+            alert('感谢您的反馈！');
+            this.closeModal('feedbackModal');
+        },
+
+        // --- UI 辅助方法 ---
+        renderCards(containerId, songs) {
+            document.getElementById(containerId).innerHTML = songs.map(song => `
+                    <div class="song-card">
+                        <div class="cover">🪕</div>
+                        <h4>${song.title}</h4>
+                        <p>${song.author || '未知作者'}</p>
+                        <div class="actions">
+                            <button class="btn-small btn-detail" onclick="app.openDetail(${song.id}, '${song.title}', '${song.author}')">详情</button>
+                            <button class="btn-small btn-play" onclick="app.requestPerformance(${song.id}, '${song.title}')">演奏</button>
+                        </div>
+                    </div>
+                `).join('');
+        },
+
+        openModal(id) {
+            const m = document.getElementById(id);
+            m.style.display = 'flex';
+            gsap.to(m, { opacity: 1, duration: 0.2 });
+            gsap.fromTo(m.querySelector('.modal'), { y: 30, scale: 0.95 }, { y: 0, scale: 1, duration: 0.4, ease: 'power2.out' });
+        },
+
+        closeModal(id) {
+            const m = document.getElementById(id);
+            gsap.to(m, { opacity: 0, duration: 0.2, onComplete: () => m.style.display = 'none' });
+        },
+
+        playEnterAnimations() {
+            const tl = gsap.timeline();
+            tl.from('.gs-header', { y: -20, opacity: 0, duration: 0.4 })
+                .from('.gs-enter', { y: 20, opacity: 0, duration: 0.4, stagger: 0.1 }, "-=0.2");
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => { app.init(); });
 </script>
 </body>
 </html>
