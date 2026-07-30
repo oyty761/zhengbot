@@ -5,7 +5,7 @@ spring:
   application:
     name: instrument-explore
   datasource:
-    url: jdbc:mysql://localhost:3306/guzheng_experience_rebuild?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/guzheng_experience_rebuild?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,11 +16,11 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
-  type-aliases-package: com.guzheng.explore.entity,com.guzheng.explore.dto
+  type-aliases-package: com.guzheng.entity,com.guzheng.dto
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 logging:
   level:
-    com.guzheng.explore.mapper: debug
+    com.guzheng.mapper: debug

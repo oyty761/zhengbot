@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.guzheng.explore.mapper.InstrumentPartMapper">
+<mapper namespace="com.guzheng.mapper.InstrumentPartMapper">
 
-    <resultMap id="BaseResultMap" type="com.guzheng.explore.entity.InstrumentPart">
+    <resultMap id="BaseResultMap" type="com.guzheng.entity.InstrumentPart">
         <id column="id" property="id"/>
         <result column="part_code" property="partCode"/>
         <result column="part_kind" property="partKind"/>
