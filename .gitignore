@@ -1,0 +1,13 @@
+# Java / Spring Boot
+demo/target/
+demo/src/main/resources/application-local.properties
+
+# Frontend
+instrument_explorer/node_modules/
+instrument_explorer/dist/
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
