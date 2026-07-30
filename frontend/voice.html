@@ -1,61 +1,410 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>语音交互 — ZhengBot</title>
-<style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --bg:#f8f5f0;--card:#ffffff;--text:#2c2416;--text-sub:#7a7265;
-    --primary:#b8733c;--border:#e8e2d8;--shadow:0 2px 12px rgba(44,36,22,.06);
-    --radius:14px;
-    --font:'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
-  }
-  body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
-  .topbar{
-    display:flex;align-items:center;gap:16px;padding:16px 28px;
-    background:var(--card);border-bottom:1px solid var(--border);box-shadow:var(--shadow);
-    position:sticky;top:0;z-index:10;
-  }
-  .back-link{text-decoration:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .2s}
-  .back-link:hover{background:#ede8df}
-  .topbar h2{font-size:19px;font-weight:700}
-  .topbar .breadcrumb{font-size:13px;color:var(--text-sub);margin-left:auto}
-  .main{max-width:700px;margin:0 auto;padding:60px 32px;text-align:center}
-  .icon{font-size:72px;opacity:.35;margin-bottom:18px}
-  h3{font-size:22px;margin-bottom:8px}
-  p{font-size:14px;color:var(--text-sub);line-height:1.8;margin-bottom:20px}
-  .api-list{text-align:left;background:var(--card);border-radius:var(--radius);padding:20px 24px;border:1px solid var(--border);margin-top:12px}
-  .api-list h4{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)}
-  .api-list .ep{font-size:12px;color:var(--text-sub);padding:3px 0;font-family:monospace}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音交互 — ZhengBot</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f8f5f0; --card: #ffffff; --text: #2c2416; --text-sub: #7a7265;
+            --primary: #b8733c; --primary-light: #d4955c; --border: #e8e2d8;
+            --shadow: 0 2px 12px rgba(44,36,22,.06); --radius: 14px;
+            --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --error: #e57373;
+        }
+
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* 顶栏 */
+        .topbar {
+            display: flex; align-items: center; gap: 16px; padding: 16px 28px;
+            background: var(--card); border-bottom: 1px solid var(--border); box-shadow: var(--shadow);
+        }
+        .back-link {
+            text-decoration: none; width: 38px; height: 38px; border-radius: 50%;
+            border: 1px solid var(--border); background: var(--bg); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: var(--text); transition: .2s;
+        }
+        .back-link:hover { background: #ede8df; }
+        .topbar h2 { font-size: 19px; font-weight: 700; margin: 0; }
+        .topbar .breadcrumb { font-size: 13px; color: var(--text-sub); margin-left: auto; }
+
+        /* 核心区域 */
+        .container { max-width: 700px; margin: 40px auto; padding: 0 24px; flex: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+        /* 麦克风录音区 */
+        .voice-panel { text-align: center; margin-bottom: 40px; }
+        .mic-btn {
+            width: 96px; height: 96px; border-radius: 50%; background: var(--primary);
+            border: none; color: white; font-size: 36px; cursor: pointer;
+            box-shadow: 0 8px 24px rgba(184, 115, 60, 0.4); transition: transform 0.2s;
+            display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto;
+        }
+        .mic-btn:active { transform: scale(0.95); }
+        .mic-btn.recording { animation: pulseRecord 1.5s infinite; background: #d32f2f; box-shadow: 0 8px 24px rgba(211, 47, 47, 0.4); }
+        .status-text { font-size: 16px; color: var(--text-sub); font-weight: bold; }
+
+        @keyframes pulseRecord {
+            0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.6); }
+            70% { box-shadow: 0 0 0 20px rgba(211, 47, 47, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+        }
+
+        /* 结果展示区 */
+        .result-card {
+            width: 100%; background: var(--card); border-radius: var(--radius); padding: 32px;
+            box-shadow: var(--shadow); display: none; margin-bottom: 30px; border: 1px solid var(--border);
+        }
+        .transcript-box { background: #faf9f7; padding: 16px; border-radius: 8px; font-size: 15px; margin-bottom: 24px; color: var(--text); border-left: 4px solid var(--primary); }
+        .transcript-box span { color: var(--text-sub); font-size: 12px; display: block; margin-bottom: 4px; }
+
+        /* 不同意图的 UI 模块 */
+        .intent-module { display: none; }
+        .intent-module.active { display: block; }
+
+        /* 点歌匹配模块 */
+        .match-info { display: flex; align-items: center; gap: 20px; background: var(--bg); padding: 16px; border-radius: 8px; }
+        .match-cover { font-size: 40px; }
+        .match-details h4 { margin: 0 0 4px 0; font-size: 18px; }
+        .match-details p { margin: 0; color: var(--text-sub); font-size: 13px; }
+        .btn-play { margin-top: 16px; width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+
+        /* 问答模块 */
+        .qa-answer { line-height: 1.6; font-size: 15px; margin-bottom: 16px; }
+        .qa-refs { font-size: 12px; color: var(--text-sub); background: #f0ebe1; padding: 10px; border-radius: 6px; }
+
+        /* 错误提示框 */
+        .error-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); opacity: 0;
+            background: var(--error); color: white; padding: 12px 24px; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(229, 115, 115, 0.4); font-size: 14px; z-index: 1000;
+        }
+    </style>
 </head>
 <body>
 
-<div class="topbar">
-  <a class="back-link" href="index.html">←</a>
-  <h2>语音交互</h2>
-  <span class="breadcrumb">首页 / 语音交互</span>
+<div class="topbar gs-header">
+    <a class="back-link" href="index.html">←</a>
+    <h2>语音交互</h2>
+    <span class="breadcrumb">首页 / 语音交互</span>
 </div>
 
-<div class="main">
-  <div class="icon">🎙️</div>
-  <h3>语音输入 · 智能识别 · 知识问答</h3>
-  <p>长按录音、VAD 自动截断、ASR 转写与意图识别。<br>支持点歌搜索、风格推荐与古筝知识问答。<br>该功能正在开发中，敬请期待。</p>
-  <div class="api-list">
-    <h4>已规划接口</h4>
-    <div class="ep">POST /api/voice-interaction/transcriptions</div>
-    <div class="ep">POST /api/voice-interaction/qa</div>
-  </div>
+<div class="container">
+    <!-- 录音控制区 -->
+    <div class="voice-panel gs-enter">
+        <button class="mic-btn" id="micBtn" onmousedown="app.startRecording()" onmouseup="app.stopRecording()" ontouchstart="app.startRecording()" ontouchend="app.stopRecording()">
+            🎤
+        </button>
+        <p class="status-text" id="statusText">按住说话，松开发送</p>
+        <p style="font-size: 12px; color: var(--text-sub); margin-top: 8px;">(前端模拟 VAD 录音截断)</p>
+    </div>
+
+    <!-- 结果展示区 -->
+    <div class="result-card" id="resultCard">
+        <!-- ASR 转写结果 -->
+        <div class="transcript-box">
+            <span>识别结果：</span>
+            <div id="asrContent">...</div>
+        </div>
+
+        <!-- 1. 点歌匹配 (SONG_SEARCH) -->
+        <div class="intent-module" id="intent-song">
+            <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--primary);">🎵 意图：点歌</h3>
+            <div class="match-info" id="matchBox">
+                <div class="match-cover">🪕</div>
+                <div class="match-details">
+                    <h4 id="matchTitle">歌曲名称</h4>
+                    <p id="matchArtist">歌手名称</p>
+                    <p id="matchMsg" style="color: var(--primary); font-weight: bold; margin-top: 4px;"></p>
+                </div>
+            </div>
+            <button class="btn-play" id="playBtn" style="display: none;" onclick="app.startPerformance()">开始演奏</button>
+        </div>
+
+        <!-- 2. 知识问答 (KNOWLEDGE_QA) -->
+        <div class="intent-module" id="intent-qa">
+            <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--primary);">📚 意图：古筝知识问答</h3>
+            <div class="qa-answer" id="qaAnswer">正在思考中...</div>
+            <div class="qa-refs" id="qaRefs"></div>
+        </div>
+
+        <!-- 3. 未知或需澄清 (UNKNOWN) -->
+        <div class="intent-module" id="intent-unknown">
+            <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--primary);">❓ 意图：不明确</h3>
+            <p id="clarifyMsg" style="line-height: 1.6;"></p>
+        </div>
+    </div>
 </div>
+
+<!-- 全局错误提示 -->
+<div class="error-toast" id="errorToast">错误提示</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  gsap.from('.topbar',{y:-30,opacity:0,duration:.4,ease:'power2.out'});
-  gsap.from('.main>*',{y:30,opacity:0,duration:.4,stagger:.1,ease:'power2.out',delay:.1});
-});
+    // ==========================================
+    // 1. API 封装与 Mock (包含 multipart 支持和错误码抛出)
+    // ==========================================
+    const API = '/api';
+
+    async function postForm(path, formData) {
+        try {
+            // 模拟网络延迟
+            await new Promise(r => setTimeout(r, 800));
+
+            // --- 离线 Mock 逻辑，模拟后端的复杂状态 ---
+            if (path.includes('/transcriptions')) {
+                // 模拟文件过大 (413)
+                if (formData.get('audioFile').size > 10 * 1024 * 1024) return { code: 413 };
+                // 模拟无声音 (422) - 这里用一个随机数假装偶尔没听到
+                if (Math.random() < 0.1) return { code: 422 };
+
+                // 默认返回一个模拟的意图识别结果 (随机分配点歌或问答)
+                const isQA = Math.random() > 0.5;
+                if (isQA) {
+                    return {
+                        code: 200,
+                        data: { transcriptionId: 101, content: "古筝有几根弦？", intentType: "KNOWLEDGE_QA" }
+                    };
+                } else {
+                    return {
+                        code: 200,
+                        data: {
+                            transcriptionId: 102, content: "帮我弹一首高山流水", intentType: "SONG_SEARCH",
+                            match: { matched: true, topScore: 0.85, songId: 12, title: "高山流水", artistName: "伯牙", showStartButton: true, displayMessage: "匹配成功" }
+                        }
+                    };
+                }
+            }
+
+            const res = await fetch(`${API}${path}`, { method: 'POST', body: formData });
+            if (!res.ok) return { code: res.status };
+            return await res.json();
+        } catch (err) { return { code: 500 }; }
+    }
+
+    async function postJson(path, body) {
+        try {
+            await new Promise(r => setTimeout(r, 500));
+            // Mock QA 接口
+            if (path.includes('/qa')) {
+                return {
+                    code: 200,
+                    data: {
+                        answer: "现代标准的古筝通常有21根弦。不过在历史上，古筝也曾经有过12弦、13弦和16弦等不同形制。",
+                        references: [{ title: "古筝形制演变史", sourceType: "INSTRUMENT_HISTORY" }]
+                    }
+                };
+            }
+            // Mock 演奏接口
+            if (path.includes('/performances')) return { code: 200, message: 'success', data: { performanceId: 999 } };
+
+            const res = await fetch(`${API}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (!res.ok) return { code: res.status };
+            return await res.json();
+        } catch (err) { return { code: 500 }; }
+    }
+
+    // ==========================================
+    // 2. 核心业务逻辑 (App)
+    // ==========================================
+    const app = {
+        sessionToken: crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now(),
+        mediaRecorder: null,
+        audioChunks: [],
+        isRecording: false,
+        currentMatchedSongId: null,
+
+        init() {
+            this.playEnterAnimations();
+        },
+
+        // --- 录音模块 (简易 VAD 模拟) ---
+        async startRecording() {
+            if (this.isRecording) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                this.mediaRecorder = new MediaRecorder(stream);
+                this.audioChunks = [];
+
+                this.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) this.audioChunks.push(e.data); };
+                this.mediaRecorder.onstop = () => this.processAudio();
+
+                this.mediaRecorder.start();
+                this.isRecording = true;
+
+                // UI 更新
+                document.getElementById('micBtn').classList.add('recording');
+                document.getElementById('statusText').innerText = '正在倾听，松开结束...';
+
+                // 隐藏结果卡片
+                gsap.to('#resultCard', { opacity: 0, y: 10, duration: 0.2, onComplete: () => { document.getElementById('resultCard').style.display = 'none'; }});
+            } catch (err) {
+                this.showError("无法获取麦克风权限，请检查浏览器设置。");
+            }
+        },
+
+        stopRecording() {
+            if (!this.isRecording || !this.mediaRecorder) return;
+            this.mediaRecorder.stop();
+            this.mediaRecorder.stream.getTracks().forEach(track => track.stop()); // 释放麦克风
+            this.isRecording = false;
+
+            document.getElementById('micBtn').classList.remove('recording');
+            document.getElementById('statusText').innerText = '正在识别语音...';
+        },
+
+        // --- API 处理工作流 ---
+        async processAudio() {
+            // 组装录音文件
+            const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' }); // 现代浏览器录音多为 webm
+            const file = new File([audioBlob], 'voice_record.webm', { type: 'audio/webm' });
+
+            const formData = new FormData();
+            formData.append('audioFile', file);
+            formData.append('sessionToken', this.sessionToken);
+
+            // 1. 调用语音转写与意图识别 API
+            const res = await postForm('/voice-interaction/transcriptions', formData);
+
+            document.getElementById('statusText').innerText = '按住说话，松开发送';
+
+            // 错误码统一拦截处理 (按文档规范)
+            if (res.code !== 200) {
+                const errorMap = {
+                    413: "录音文件过大，请控制说话时长。",
+                    415: "不支持的音频格式。",
+                    422: "未检测到有效语音，或环境太嘈杂，请再说一遍。",
+                    429: "请求过快，请稍后再试。",
+                    502: "AI 大模型或后台服务开小差了，请重试。"
+                };
+                return this.showError(errorMap[res.code] || `系统异常 (错误码: ${res.code})`);
+            }
+
+            this.renderResult(res.data);
+        },
+
+        async renderResult(data) {
+            // 显示卡片
+            const card = document.getElementById('resultCard');
+            card.style.display = 'block';
+            document.querySelectorAll('.intent-module').forEach(el => el.classList.remove('active'));
+
+            // 渲染转写文本
+            document.getElementById('asrContent').innerText = data.content;
+
+            // 路由到对应意图处理 (根据工作流)
+            switch(data.intentType) {
+                case 'SONG_SEARCH':
+                    document.getElementById('intent-song').classList.add('active');
+                    this.handleSongSearch(data.match);
+                    break;
+                case 'KNOWLEDGE_QA':
+                    document.getElementById('intent-qa').classList.add('active');
+                    // 获取到意图后，走 QA 接口
+                    this.handleQA(data.content, data.transcriptionId);
+                    break;
+                case 'UNKNOWN':
+                case 'SONG_RECOMMEND': // 根据要求推荐为低优先级，暂时按 UNKNOWN/澄清处理
+                default:
+                    document.getElementById('intent-unknown').classList.add('active');
+                    document.getElementById('clarifyMsg').innerText = data.promptMessage || "抱歉，没听懂您的需求，请换个说法试试（例如：播放渔舟唱晚、古筝有几根弦）。";
+                    break;
+            }
+
+            // GSAP 卡片入场动画
+            gsap.fromTo(card, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' });
+        },
+
+        // --- 意图分支逻辑 ---
+        handleSongSearch(match) {
+            const playBtn = document.getElementById('playBtn');
+            if (match && match.matched) {
+                this.currentMatchedSongId = match.songId;
+                document.getElementById('matchTitle').innerText = match.title;
+                document.getElementById('matchArtist').innerText = match.artistName || '未知';
+                document.getElementById('matchMsg').innerText = match.displayMessage;
+                document.getElementById('matchMsg').style.color = 'var(--primary)';
+                playBtn.style.display = match.showStartButton ? 'block' : 'none';
+            } else {
+                document.getElementById('matchTitle').innerText = '未找到匹配曲目';
+                document.getElementById('matchArtist').innerText = '-';
+                document.getElementById('matchMsg').innerText = match ? match.displayMessage : "暂不支持该曲目";
+                document.getElementById('matchMsg').style.color = 'var(--error)';
+                playBtn.style.display = 'none';
+            }
+        },
+
+        async handleQA(content, transcriptionId) {
+            document.getElementById('qaAnswer').innerText = "机器人检索资料中...";
+            document.getElementById('qaRefs').innerHTML = "";
+
+            // 2. 调用智能问答 API
+            const res = await postJson('/voice-interaction/qa', {
+                content: content,
+                sessionToken: this.sessionToken,
+                inputChannel: 'VOICE',
+                transcriptionId: transcriptionId
+            });
+
+            if (res.code === 200) {
+                document.getElementById('qaAnswer').innerText = res.data.answer;
+                if (res.data.references && res.data.references.length > 0) {
+                    const refsHtml = res.data.references.map(r => `• 来源：${r.title} (${r.sourceType})`).join('<br>');
+                    document.getElementById('qaRefs').innerHTML = `<strong>参考资料：</strong><br>${refsHtml}`;
+                }
+            } else {
+                document.getElementById('qaAnswer').innerText = "抱歉，检索知识库失败。";
+            }
+        },
+
+        async startPerformance() {
+            if (!this.currentMatchedSongId) return;
+
+            const btn = document.getElementById('playBtn');
+            btn.innerText = "发送指令中...";
+            btn.disabled = true;
+
+            // 3. 复用点歌模块的演奏 API (需防重)
+            const payload = {
+                songId: this.currentMatchedSongId,
+                sessionToken: this.sessionToken
+                // 实际前端可加 Idempotency-Key
+            };
+            const res = await postJson('/songbook/performances', payload);
+
+            if (res.code === 200) {
+                btn.innerText = "✓ 已发送机器人演奏指令";
+                btn.style.background = "#4caf50";
+            } else if (res.code === 409) {
+                this.showError("机器人正在忙碌中，请稍后再试。");
+                btn.innerText = "开始演奏";
+                btn.disabled = false;
+            } else {
+                this.showError("创建演奏任务失败。");
+                btn.innerText = "开始演奏";
+                btn.disabled = false;
+            }
+        },
+
+        // --- UI 工具 ---
+        showError(msg) {
+            const toast = document.getElementById('errorToast');
+            toast.innerText = msg;
+            gsap.to(toast, { y: 0, opacity: 1, duration: 0.4, ease: 'back.out(1.5)' });
+            setTimeout(() => gsap.to(toast, { y: -100, opacity: 0, duration: 0.4 }), 3500);
+        },
+
+        playEnterAnimations() {
+            const tl = gsap.timeline();
+            tl.from('.gs-header', { y: -20, opacity: 0, duration: 0.4 })
+                .from('.gs-enter', { y: 20, opacity: 0, duration: 0.4, stagger: 0.1 }, "-=0.2");
+        }
+    };
+
+    // DOM 加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => { app.init(); });
 </script>
 </body>
 </html>
