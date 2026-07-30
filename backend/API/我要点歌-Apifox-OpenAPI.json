@@ -1,0 +1,460 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "古筝智能体验系统·我要点歌接口（rebuild版）",
+    "version": "2.0.0",
+    "description": "适配 zhengbot-main_rebuild、com.guzheng.songbook 包结构和本地 8081 端口，可直接导入 Apifox 调试。"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8081",
+      "description": "本地 Spring Boot"
+    }
+  ],
+  "tags": [
+    {
+      "name": "我要点歌",
+      "description": "曲库浏览、搜索推荐、演奏任务与听后反馈接口"
+    }
+  ],
+  "paths": {
+    "/api/songbook/home": {
+      "get": {
+        "tags": ["我要点歌"],
+        "summary": "获取点歌首页",
+        "operationId": "songbookHome",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/songs": {
+      "get": {
+        "tags": ["我要点歌"],
+        "summary": "浏览或筛选曲库",
+        "operationId": "listSongs",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "example": 1
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12
+            },
+            "example": 12
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "渔舟"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/songs/{songId}": {
+      "get": {
+        "tags": ["我要点歌"],
+        "summary": "获取曲目详情",
+        "operationId": "getSongDetail",
+        "parameters": [
+          {
+            "name": "songId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功或业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/search": {
+      "post": {
+        "tags": ["我要点歌"],
+        "summary": "搜索曲目",
+        "operationId": "searchSongs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscoveryInput"
+              },
+              "example": {
+                "content": "高山流水",
+                "sessionToken": "550e8400-e29b-41d4-a716-446655440000",
+                "inputChannel": "TEXT",
+                "limit": 6
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功或业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/recommendations": {
+      "post": {
+        "tags": ["我要点歌"],
+        "summary": "智能推荐",
+        "operationId": "recommendSongs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscoveryInput"
+              },
+              "example": {
+                "content": "我想听轻松、舒缓一点的古风曲子",
+                "sessionToken": "550e8400-e29b-41d4-a716-446655440000",
+                "inputChannel": "TEXT",
+                "limit": 6
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功或业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/alternatives": {
+      "post": {
+        "tags": ["我要点歌"],
+        "summary": "获取替代曲目",
+        "operationId": "alternativeSongs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscoveryInput"
+              },
+              "example": {
+                "content": "来一首适合静心的古风曲子",
+                "inputChannel": "TEXT",
+                "limit": 6
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功或业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/performances": {
+      "post": {
+        "tags": ["我要点歌"],
+        "summary": "创建演奏任务",
+        "operationId": "startPerformance",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayRequest"
+              },
+              "example": {
+                "songId": 1,
+                "sessionToken": "550e8400-e29b-41d4-a716-446655440000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功或业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/performances/{performanceId}": {
+      "get": {
+        "tags": ["我要点歌"],
+        "summary": "查询演奏状态",
+        "operationId": "getPerformance",
+        "parameters": [
+          {
+            "name": "performanceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功或业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/feedback/descriptors": {
+      "get": {
+        "tags": ["我要点歌"],
+        "summary": "获取反馈标签",
+        "operationId": "getFeedbackDescriptors",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/songbook/performances/{performanceId}/feedback": {
+      "post": {
+        "tags": ["我要点歌"],
+        "summary": "提交听后反馈",
+        "operationId": "submitPerformanceFeedback",
+        "parameters": [
+          {
+            "name": "performanceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              },
+              "example": {
+                "rating": 5,
+                "comment": "旋律很舒缓",
+                "descriptorIds": [1]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功或业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "description": "统一响应外壳。data 的实际结构由具体接口决定。",
+        "additionalProperties": true,
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "success"
+          }
+        }
+      },
+      "DiscoveryInput": {
+        "type": "object",
+        "required": ["content"],
+        "properties": {
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "sessionToken": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inputChannel": {
+            "type": "string",
+            "enum": ["TEXT", "VOICE"],
+            "default": "TEXT"
+          },
+          "audioAssetId": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "asrConfidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "vadDurationMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 6
+          }
+        }
+      },
+      "PlayRequest": {
+        "type": "object",
+        "required": ["songId"],
+        "properties": {
+          "songId": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "sessionToken": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "FeedbackRequest": {
+        "type": "object",
+        "required": ["descriptorIds"],
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "descriptorIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}
