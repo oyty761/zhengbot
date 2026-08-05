@@ -5,8 +5,8 @@
 - 乐器探秘：`/api/instrument-explore/**`
 - 我要点歌：`/api/songbook/**`
 
-“我要点歌”按照 `docs/API/我要点歌板块接口.md` 和重构版
-`guzheng_experience_rebuild` 数据库实现。
+“我要点歌”按照 `docs/API/我要点歌板块接口.md` 和 JPT 扩展版
+`guzheng_experience_jpt` 数据库实现。
 
 ## 环境要求
 
@@ -16,21 +16,19 @@
 
 ## 初始化数据库
 
-先执行项目根目录下的重构版建库脚本：
+首次安装或需要重建测试库时，按照以下顺序执行项目根目录中的脚本：
 
 ```text
-guzheng_experience_rebuild.sql
+1. guzheng_experience_jpt.sql
+2. seed_data.sql
+3. songbook_demo_data.sql
+4. jpt_reference_data.sql
 ```
 
-该脚本会重建数据库表，已有正式数据时不要重复执行。
+`guzheng_experience_jpt.sql` 会重建新库中的表，已有正式数据时不要重复执行。
+`seed_data.sql` 会重置乐器探秘演示数据，也只应在开发或测试环境执行。
 
-如需页面联调数据，可再手动执行：
-
-```text
-songbook_demo_data.sql
-```
-
-演示脚本可重复执行，不会重复创建同名歌曲和描述词。脚本中的资源地址是占位地址，
+`songbook_demo_data.sql` 和 `jpt_reference_data.sql` 可以重复执行，不会重复创建同名歌曲、描述词和调弦数据。脚本中的资源地址是占位地址，
 接入真实图片、音频和机器人曲谱后需要替换。
 
 ## 启动
@@ -39,14 +37,14 @@ PowerShell 示例：
 
 ```powershell
 $env:DB_USERNAME = 'root'
-$env:DB_PASSWORD = '你的MySQL密码'
+$env:DB_PASSWORD = '3333'
 .\apache-maven-3.9.12\bin\mvn.cmd spring-boot:run
 ```
 
 默认连接：
 
 ```text
-jdbc:mysql://localhost:3306/guzheng_experience_rebuild
+jdbc:mysql://localhost:3306/guzheng_experience_jpt
 ```
 
 如数据库不在本机，可另外设置 `DB_URL`。
@@ -68,6 +66,11 @@ jdbc:mysql://localhost:3306/guzheng_experience_rebuild
 
 创建演奏任务后状态为 `QUEUED`。机器人调度程序负责继续更新为
 `SENDING`、`PLAYING`、`SUCCEEDED`、`FAILED` 或 `CANCELLED`。
+提交反馈时必须使用创建演奏任务接口实际返回的 `performanceId`，且任务状态必须为
+`SUCCEEDED`；反馈标签 ID 应先通过 `/api/songbook/feedback/descriptors` 查询，不能写死示例值。
+
+错误响应同时使用正确的 HTTP 状态码和响应体 `code`，例如无法识别推荐词返回 HTTP 422，
+演奏任务不存在返回 HTTP 404。
 
 ## 测试
 
@@ -77,12 +80,12 @@ jdbc:mysql://localhost:3306/guzheng_experience_rebuild
 .\apache-maven-3.9.12\bin\mvn.cmd test
 ```
 
-如需运行基于真实重构版 MySQL 的完整接口测试：
+如需运行基于真实 JPT 扩展版 MySQL 的完整接口测试：
 
 ```powershell
 $env:RUN_MYSQL_INTEGRATION_TESTS = 'true'
 $env:DB_USERNAME = 'root'
-$env:DB_PASSWORD = '你的MySQL密码'
+$env:DB_PASSWORD = '3333'
 .\apache-maven-3.9.12\bin\mvn.cmd -Dtest=SongbookApiIntegrationTest test
 ```
 

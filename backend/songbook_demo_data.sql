@@ -1,4 +1,6 @@
-USE `guzheng_experience_rebuild`;
+-- 先执行 guzheng_experience_jpt.sql 和 seed_data.sql。
+-- 本脚本同时初始化点歌推荐词、歌曲标签和演示曲目，可重复执行。
+USE `guzheng_experience_jpt`;
 
 START TRANSACTION;
 
