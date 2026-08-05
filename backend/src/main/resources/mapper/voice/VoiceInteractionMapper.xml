@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guzheng.voice.mapper.VoiceInteractionMapper">
+
+    <select id="findSessionIdByToken" resultType="java.lang.Long">
+        SELECT id
+        FROM experience_session
+        WHERE session_token = #{sessionToken}
+    </select>
+
+    <insert id="insertSession" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO experience_session (session_token)
+        VALUES (#{sessionToken})
+    </insert>
+
+    <select id="findAudioAssetByChecksum"
+            resultType="com.guzheng.voice.model.VoiceRecords$DigitalAssetRow">
+        SELECT id, storage_uri, mime_type, checksum_sha256, duration_ms
+        FROM digital_asset
+        WHERE checksum_sha256 = #{checksum}
+          AND asset_kind = 'AUDIO'
+        LIMIT 1
+    </select>
+
+    <insert id="insertAudioAsset" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO digital_asset (
+            asset_kind,
+            storage_uri,
+            mime_type,
+            checksum_sha256,
+            duration_ms
+        ) VALUES (
+            'AUDIO',
+            #{storageUri},
+            #{mimeType},
+            #{checksumSha256},
+            #{durationMs}
+        )
+    </insert>
+
+    <insert id="insertUtterance" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO utterance (
+            session_id,
+            input_channel,
+            intent_type,
+            transcript,
+            audio_asset_id,
+            asr_confidence,
+            vad_duration_ms
+        ) VALUES (
+            #{sessionId},
+            #{inputChannel},
+            #{intentType},
+            #{transcript},
+            #{audioAssetId},
+            #{asrConfidence},
+            #{vadDurationMs}
+        )
+    </insert>
+
+    <select id="findUtterance"
+            resultType="com.guzheng.voice.model.VoiceRecords$UtteranceRow">
+        SELECT id,
+               session_id,
+               input_channel,
+               intent_type,
+               transcript,
+               audio_asset_id,
+               asr_confidence,
+               vad_duration_ms
+        FROM utterance
+        WHERE id = #{utteranceId}
+    </select>
+
+    <select id="findReadySongs"
+            resultType="com.guzheng.voice.model.VoiceRecords$SongRow">
+        SELECT pw.id AS song_id,
+               pw.title,
+               s.artist_name,
+               (
+                   SELECT GROUP_CONCAT(sa.alias_text ORDER BY sa.id SEPARATOR ',')
+                   FROM song_alias sa
+                   WHERE sa.song_id = pw.id
+               ) AS aliases,
+               (
+                   SELECT da.storage_uri
+                   FROM song_resource sr
+                   JOIN digital_asset da ON da.id = sr.asset_id
+                   WHERE sr.song_id = pw.id
+                     AND sr.resource_role = 'COVER'
+                   ORDER BY sr.display_order, sr.asset_id
+                   LIMIT 1
+               ) AS cover_url,
+               ROW_NUMBER() OVER (ORDER BY pw.updated_at DESC, pw.id DESC) AS display_order
+        FROM playable_work pw
+        JOIN song s ON s.work_id = pw.id
+        WHERE pw.work_kind = 'SONG'
+          AND pw.playable_status = 'READY'
+        ORDER BY pw.updated_at DESC, pw.id DESC
+    </select>
+
+    <select id="findKnowledgeCandidates"
+            resultType="com.guzheng.voice.model.VoiceRecords$KnowledgeRow">
+        SELECT CASE
+                   WHEN category LIKE '%历史%' THEN 'INSTRUMENT_HISTORY'
+                   WHEN category LIKE '%曲%' THEN 'SONG'
+                   ELSE 'INSTRUMENT_STRUCTURE'
+               END AS source_type,
+               id AS source_id,
+               id AS knowledge_item_id,
+               title,
+               content
+        FROM knowledge_item
+        WHERE enabled = TRUE
+
+        UNION ALL
+
+        SELECT 'INSTRUMENT_STRUCTURE' AS source_type,
+               id AS source_id,
+               NULL AS knowledge_item_id,
+               name AS title,
+               CONCAT_WS('；', summary, function_text, position_text, performance_relation) AS content
+        FROM instrument_part
+        WHERE enabled = TRUE
+          AND part_kind = 'COMPONENT'
+
+        UNION ALL
+
+        SELECT 'INSTRUMENT_HISTORY' AS source_type,
+               id AS source_id,
+               NULL AS knowledge_item_id,
+               title,
+               CONCAT_WS('；', time_label, content) AS content
+        FROM history_entry
+        WHERE enabled = TRUE
+
+        UNION ALL
+
+        SELECT 'SONG' AS source_type,
+               pw.id AS source_id,
+               NULL AS knowledge_item_id,
+               pw.title,
+               CONCAT_WS('；', s.artist_name, s.origin_period, s.background_text, s.style_text) AS content
+        FROM playable_work pw
+        JOIN song s ON s.work_id = pw.id
+        WHERE pw.work_kind = 'SONG'
+    </select>
+
+    <insert id="insertQaAnswer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO qa_answer (utterance_id, answer_text, model_name)
+        VALUES (#{utteranceId}, #{answerText}, #{modelName})
+    </insert>
+
+    <insert id="insertAnswerSources">
+        INSERT INTO answer_source (
+            answer_id,
+            knowledge_item_id,
+            rank_no,
+            relevance_score
+        ) VALUES
+        <foreach collection="sources" item="source" separator=",">
+            (
+                #{source.answerId},
+                #{source.knowledgeItemId},
+                #{source.rankNo},
+                #{source.relevanceScore}
+            )
+        </foreach>
+    </insert>
+</mapper>

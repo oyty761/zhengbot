@@ -1,0 +1,13 @@
+# 复制为 voice-api.properties 后填写真实配置；voice-api.properties 已被 Git 忽略。
+# 支持 OpenAI-compatible 的语音转写和 Chat Completions 接口。
+
+voice.asr.url=https://your-provider.example/v1/audio/transcriptions
+voice.asr.api-key=replace-with-your-api-key
+voice.asr.model=whisper-1
+
+voice.llm.url=https://your-provider.example/v1/chat/completions
+voice.llm.api-key=replace-with-your-api-key
+voice.llm.model=replace-with-your-model-name
+
+# 相对路径基于后端启动时的工作目录，也可以填写绝对路径。
+voice.audio.storage-dir=./data/voice
