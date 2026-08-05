@@ -2,6 +2,7 @@
 -- MySQL 8.0+ / utf8mb4
 -- 本脚本完整保留独立重构版结构，并新增 JPT 1.0 曲谱、调弦和编译追踪能力。
 -- 只操作新库 guzheng_experience_jpt，不会修改 guzheng_experience_rebuild 或 instrument_explorer。
+-- 2026-08-05：兼容 MySQL 8.0 生成列限制，jpt_score.work_id 外键使用 RESTRICT 而非 CASCADE。
 
 CREATE DATABASE IF NOT EXISTS `guzheng_experience_jpt`
   CHARACTER SET utf8mb4
@@ -236,7 +237,7 @@ CREATE TABLE `jpt_score` (
   KEY `idx_jpt_score_work_status` (`work_id`, `score_status`),
   KEY `idx_jpt_score_tuning` (`tuning_id`),
   CONSTRAINT `fk_jpt_score_work` FOREIGN KEY (`work_id`)
-    REFERENCES `playable_work` (`id`) ON DELETE CASCADE,
+    REFERENCES `playable_work` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_jpt_score_asset` FOREIGN KEY (`score_asset_id`)
     REFERENCES `digital_asset` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_jpt_score_tuning` FOREIGN KEY (`tuning_id`)

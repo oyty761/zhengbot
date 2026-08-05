@@ -14,12 +14,12 @@ INSERT INTO `jpt_tuning` (
   21,
   'JPT 1.0 默认调弦；弦号从高音到低音按 1 至 21 编号。',
   TRUE
-)
+) AS `new_tuning`
 ON DUPLICATE KEY UPDATE
-  `name` = VALUES(`name`),
-  `string_count` = VALUES(`string_count`),
-  `description` = VALUES(`description`),
-  `enabled` = VALUES(`enabled`);
+  `name` = `new_tuning`.`name`,
+  `string_count` = `new_tuning`.`string_count`,
+  `description` = `new_tuning`.`description`,
+  `enabled` = `new_tuning`.`enabled`;
 
 SET @jpt_d_pentatonic_id = (
   SELECT `id`
@@ -49,9 +49,9 @@ INSERT INTO `jpt_tuning_string` (`tuning_id`, `string_no`, `pitch_name`, `midi_n
 (@jpt_d_pentatonic_id, 18, 'A2',  45),
 (@jpt_d_pentatonic_id, 19, 'F#2', 42),
 (@jpt_d_pentatonic_id, 20, 'E2',  40),
-(@jpt_d_pentatonic_id, 21, 'D2',  38)
+(@jpt_d_pentatonic_id, 21, 'D2',  38) AS `new_string`
 ON DUPLICATE KEY UPDATE
-  `pitch_name` = VALUES(`pitch_name`),
-  `midi_note` = VALUES(`midi_note`);
+  `pitch_name` = `new_string`.`pitch_name`,
+  `midi_note` = `new_string`.`midi_note`;
 
 COMMIT;

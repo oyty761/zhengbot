@@ -9,6 +9,7 @@
 - 旧库 `instrument_explorer` 也不会被修改。
 - 原有 27 张业务表及原字段均保留。
 - 仅给 `performance_run`、`robot_dispatch` 增加可空的 JPT 追踪字段，旧代码可以继续不传这些字段。
+- `jpt_score.work_id` 使用 `ON DELETE RESTRICT`：因为 `current_work_id` 是引用 `work_id` 的 STORED 生成列，MySQL 8.0 不允许该基列外键使用 `ON DELETE CASCADE`。作品已有 JPT 时应归档，不应直接物理删除。
 
 ## 2. 文件与执行顺序
 
@@ -61,6 +62,7 @@
 - `digital_asset.asset_kind='COMMAND'`：保存编译后的机械手控制指令，不能与 JPT 混用。
 - `performance_run.jpt_score_id`：锁定一次演奏使用的曲谱版本；复合外键保证它属于同一 `work_id`。
 - `robot_dispatch.jpt_compilation_id`：追踪发送的指令由哪次 JPT 编译产生。
+- 删除 `playable_work` 前必须先显式处理其 `jpt_score`；正常业务流程推荐把作品状态改为 `ARCHIVED`。
 
 ## 5. 应用层必须继续校验的规则
 
