@@ -13,7 +13,9 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -417,13 +419,31 @@ public class SongbookServiceImpl implements SongbookService {
 
     private List<Long> matchDescriptorIds(String content) {
         String normalized = content.trim().toLowerCase(Locale.ROOT);
-        return songbookMapper.findRecommendationDescriptors()
+        List<SongbookRecords.DescriptorRow> descriptors = songbookMapper
+                .findRecommendationDescriptors()
                 .stream()
-                .filter(descriptor -> normalized.contains(
-                        descriptor.getName().toLowerCase(Locale.ROOT)))
-                .map(SongbookRecords.DescriptorRow::getId)
-                .distinct()
+                .filter(descriptor -> StringUtils.hasText(descriptor.getName()))
+                .sorted(Comparator.comparingInt(
+                                (SongbookRecords.DescriptorRow descriptor) -> descriptor.getName().length())
+                        .reversed())
                 .toList();
+
+        List<String> selectedNames = new ArrayList<>();
+        LinkedHashSet<Long> selectedIds = new LinkedHashSet<>();
+        for (SongbookRecords.DescriptorRow descriptor : descriptors) {
+            String descriptorName = descriptor.getName().trim().toLowerCase(Locale.ROOT);
+            if (!normalized.contains(descriptorName)) {
+                continue;
+            }
+            // 若已经命中更长的描述词，不再把它包含的短词重复计入推荐条件。
+            boolean coveredByLongerMatch = selectedNames.stream()
+                    .anyMatch(selectedName -> selectedName.contains(descriptorName));
+            if (!coveredByLongerMatch) {
+                selectedNames.add(descriptorName);
+                selectedIds.add(descriptor.getId());
+            }
+        }
+        return List.copyOf(selectedIds);
     }
 
     private SongbookRecords.SongRow requireSong(Long songId) {
@@ -497,4 +517,3 @@ public class SongbookServiceImpl implements SongbookService {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
 }
-
