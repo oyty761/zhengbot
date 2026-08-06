@@ -1,5 +1,6 @@
 # Java / Maven
 backend/target/
+backend/apache-maven-3.9.12/
 backend/.idea/
 backend/*.iml
 
@@ -8,6 +9,7 @@ backend/*.iml
 *.local
 backend/src/main/resources/application-local.yml
 backend/src/main/resources/application-local.properties
+backend/config/application-local.yml
 backend/config/voice-api.properties
 
 # IDE / OS
