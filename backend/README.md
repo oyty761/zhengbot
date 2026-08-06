@@ -16,16 +16,16 @@
 
 ## 初始化数据库
 
-首次安装或需要重建测试库时，按照以下顺序执行项目根目录中的脚本：
+首次安装或需要重建测试库时，在 `backend` 目录下按照以下顺序执行脚本：
 
 ```text
-1. guzheng_experience_jpt.sql
+1. database/database_v3(JPT)/guzheng_experience_jpt.sql
 2. seed_data.sql
 3. songbook_demo_data.sql
-4. jpt_reference_data.sql
+4. database/database_v3(JPT)/jpt_reference_data.sql
 ```
 
-`guzheng_experience_jpt.sql` 会重建新库中的表，已有正式数据时不要重复执行。
+`database/database_v3(JPT)/guzheng_experience_jpt.sql` 会重建新库中的表，已有正式数据时不要重复执行。
 `seed_data.sql` 会重置乐器探秘演示数据，也只应在开发或测试环境执行。
 
 `songbook_demo_data.sql` 和 `jpt_reference_data.sql` 可以重复执行，不会重复创建同名歌曲、描述词和调弦数据。脚本中的资源地址是占位地址，
@@ -37,7 +37,7 @@ PowerShell 示例：
 
 ```powershell
 $env:DB_USERNAME = 'root'
-$env:DB_PASSWORD = '3333'
+$env:DB_PASSWORD = '<你的MySQL密码>'
 .\apache-maven-3.9.12\bin\mvn.cmd spring-boot:run
 ```
 
@@ -85,7 +85,7 @@ jdbc:mysql://localhost:3306/guzheng_experience_jpt
 ```powershell
 $env:RUN_MYSQL_INTEGRATION_TESTS = 'true'
 $env:DB_USERNAME = 'root'
-$env:DB_PASSWORD = '3333'
+$env:DB_PASSWORD = '<你的MySQL密码>'
 .\apache-maven-3.9.12\bin\mvn.cmd -Dtest=SongbookApiIntegrationTest test
 ```
 
