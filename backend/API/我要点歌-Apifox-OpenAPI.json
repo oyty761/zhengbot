@@ -314,11 +314,13 @@
       "post": {
         "tags": ["我要点歌"],
         "summary": "提交听后反馈",
+        "description": "先调用创建演奏任务接口，把响应中的 data.performanceId 填入路径；任务状态更新为 SUCCEEDED 后才能提交。descriptorIds 应从反馈标签接口读取。",
         "operationId": "submitPerformanceFeedback",
         "parameters": [
           {
             "name": "performanceId",
             "in": "path",
+            "description": "创建演奏任务接口实际返回的数字 ID，不能直接发送字面量 {performanceId}。",
             "required": true,
             "schema": {
               "type": "integer",
@@ -345,7 +347,7 @@
         },
         "responses": {
           "200": {
-            "description": "成功或业务错误",
+            "description": "反馈提交成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -353,6 +355,12 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "该 performanceId 对应的演奏任务不存在"
+          },
+          "409": {
+            "description": "演奏尚未成功完成，或该任务已经提交过反馈"
           }
         }
       }
