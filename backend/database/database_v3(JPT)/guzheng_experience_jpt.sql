@@ -2,7 +2,7 @@
 -- MySQL 8.0+ / utf8mb4
 -- 本脚本完整保留独立重构版结构，并新增 JPT 1.0 曲谱、调弦和编译追踪能力。
 -- 只操作新库 guzheng_experience_jpt，不会修改 guzheng_experience_rebuild 或 instrument_explorer。
--- 2026-08-05：兼容 MySQL 8.0 生成列限制，jpt_score.work_id 外键使用 RESTRICT 而非 CASCADE。
+-- 2026-08-17：current_work_id 改由触发器维护，避免生成列基列参与外键时触发 ERROR 1215。
 
 CREATE DATABASE IF NOT EXISTS `guzheng_experience_jpt`
   CHARACTER SET utf8mb4
@@ -13,6 +13,9 @@ USE `guzheng_experience_jpt`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP VIEW IF EXISTS `v_jpt_note_export`;
+
+DROP TRIGGER IF EXISTS `trg_jpt_score_set_current_bi`;
+DROP TRIGGER IF EXISTS `trg_jpt_score_set_current_bu`;
 
 DROP TABLE IF EXISTS `feedback_descriptor`;
 DROP TABLE IF EXISTS `performance_feedback`;
@@ -223,9 +226,7 @@ CREATE TABLE `jpt_score` (
   `score_status` VARCHAR(16) NOT NULL DEFAULT 'DRAFT' COMMENT '曲谱状态：草稿、已校验、已编译、无效或归档',
   `validation_message` VARCHAR(1000) DEFAULT NULL COMMENT '校验失败或编译前检查的说明',
   `is_current` BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否为该作品当前使用的 JPT 修订版',
-  `current_work_id` BIGINT UNSIGNED GENERATED ALWAYS AS (
-    CASE WHEN `is_current` = TRUE THEN `work_id` ELSE NULL END
-  ) STORED COMMENT '用于保证每个作品最多一个当前修订版',
+  `current_work_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '由触发器维护，用于保证每个作品最多一个当前修订版',
   `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '修订版创建时间',
   `validated_at` DATETIME(3) DEFAULT NULL COMMENT '通过 JPT 语法与调弦一致性校验的时间',
   PRIMARY KEY (`id`),
@@ -253,6 +254,18 @@ CREATE TABLE `jpt_score` (
   CONSTRAINT `ck_jpt_score_asset_required` CHECK (`score_status` NOT IN ('VALIDATED','COMPILED') OR `score_asset_id` IS NOT NULL),
   CONSTRAINT `ck_jpt_score_validation_time` CHECK (`validated_at` IS NULL OR `validated_at` >= `created_at`)
 ) ENGINE=InnoDB COMMENT='统一作品的 JPT 1.0 曲谱修订版';
+
+-- 不使用生成列，避免部分 MySQL 8.0 环境把 work_id 识别为生成列基列后拒绝创建外键。
+-- 两个触发器会覆盖外部传入值，确保 current_work_id 与 is_current/work_id 始终一致。
+CREATE TRIGGER `trg_jpt_score_set_current_bi`
+BEFORE INSERT ON `jpt_score`
+FOR EACH ROW
+SET NEW.`current_work_id` = CASE WHEN NEW.`is_current` = TRUE THEN NEW.`work_id` ELSE NULL END;
+
+CREATE TRIGGER `trg_jpt_score_set_current_bu`
+BEFORE UPDATE ON `jpt_score`
+FOR EACH ROW
+SET NEW.`current_work_id` = CASE WHEN NEW.`is_current` = TRUE THEN NEW.`work_id` ELSE NULL END;
 
 CREATE TABLE `song` (
   `work_id` BIGINT UNSIGNED NOT NULL COMMENT '歌曲对应的可演奏作品编号，同时也是本表主键',

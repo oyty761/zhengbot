@@ -9,7 +9,8 @@
 - 旧库 `instrument_explorer` 也不会被修改。
 - 原有 27 张业务表及原字段均保留。
 - 仅给 `performance_run`、`robot_dispatch` 增加可空的 JPT 追踪字段，旧代码可以继续不传这些字段。
-- `jpt_score.work_id` 使用 `ON DELETE RESTRICT`：因为 `current_work_id` 是引用 `work_id` 的 STORED 生成列，MySQL 8.0 不允许该基列外键使用 `ON DELETE CASCADE`。作品已有 JPT 时应归档，不应直接物理删除。
+- `jpt_score.work_id` 使用 `ON DELETE RESTRICT`：作品已有 JPT 修订历史时应归档，不应直接物理删除。
+- `current_work_id` 是仅供数据库维护的内部列，由插入/更新触发器同步，避免部分 MySQL 8.0 环境因“生成列基列同时参与外键”而在创建 `jpt_score` 时报告 1215。
 
 ## 2. 文件与执行顺序
 
@@ -36,7 +37,7 @@
 - 保存 JPT 版本、速度、拍号、ticks 和调弦；
 - `score_asset_id` 指向 `digital_asset` 中的 `.jpt` 文件；
 - `revision_no` 支持同一作品多个版本；
-- 生成列与唯一索引保证每个作品最多一个 `is_current=TRUE` 的版本；
+- 两个触发器维护 `current_work_id`，配合唯一索引保证每个作品最多一个 `is_current=TRUE` 的版本；应用写入时只需设置 `is_current`，不要自行维护 `current_work_id`；
 - 标题和作者保存 META 快照，保证历史文件可复现。
 
 ### `jpt_score_note`
