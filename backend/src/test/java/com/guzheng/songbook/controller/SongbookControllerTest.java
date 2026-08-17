@@ -48,9 +48,8 @@ class SongbookControllerTest {
                                   "inputChannel": "TEXT"
                                 }
                                 """))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("点歌需求不能为空"));
     }
 }
-
