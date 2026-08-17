@@ -1,0 +1,18 @@
+Source pack: Rosewood Guzheng Tuned Project (21 individual slices)
+Creator: Zachary King / Atlas
+Release post: https://www.reddit.com/r/ableton/comments/g7een5/
+Archived download page:
+https://web.archive.org/web/20201021044656/https://zacharykingmusic.com/downloads/
+Author's stated permission: "royalty free"
+
+The author's download page describes this home-studio Rosewood Guzheng sound
+as shared royalty free. No separate standardized license file was included in
+the downloaded archive. These derivatives are being used for the requested
+non-commercial guzheng interaction model. Confirm terms with the author before
+any future commercial redistribution if additional certainty is needed.
+
+Each MP3 in this directory is derived from a different original WAV slice.
+Project crop points and cent adjustments were read from the included Ableton
+Live project. The original downloaded archive is preserved at:
+source/rosewood_guzheng_21_slice_source.zip
+

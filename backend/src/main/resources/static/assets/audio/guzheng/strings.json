@@ -1,0 +1,234 @@
+[
+  {
+    "stringNumber": 1,
+    "note": "D6",
+    "frequencyHz": 1174.659,
+    "file": "string_01_D6.mp3",
+    "durationSeconds": 2.498,
+    "sourceSlice": 21,
+    "sourceFile": "Slice 21 [2020-04-05 181503].wav",
+    "sourceDetuneCents": 7,
+    "lateTransientRatio": 0.0719
+  },
+  {
+    "stringNumber": 2,
+    "note": "B5",
+    "frequencyHz": 987.767,
+    "file": "string_02_B5.mp3",
+    "durationSeconds": 2.878,
+    "sourceSlice": 20,
+    "sourceFile": "Slice 20 [2020-04-05 181413].wav",
+    "sourceDetuneCents": 27,
+    "lateTransientRatio": 0.1215
+  },
+  {
+    "stringNumber": 3,
+    "note": "A5",
+    "frequencyHz": 880.0,
+    "file": "string_03_A5.mp3",
+    "durationSeconds": 2.568,
+    "sourceSlice": 19,
+    "sourceFile": "Slice 19 [2020-04-05 181334].wav",
+    "sourceDetuneCents": 12,
+    "lateTransientRatio": 0.1167
+  },
+  {
+    "stringNumber": 4,
+    "note": "F#5",
+    "frequencyHz": 739.989,
+    "file": "string_04_Fs5.mp3",
+    "durationSeconds": 3.264,
+    "sourceSlice": 18,
+    "sourceFile": "Slice 18 [2020-04-05 181251].wav",
+    "sourceDetuneCents": 10,
+    "lateTransientRatio": 0.1085
+  },
+  {
+    "stringNumber": 5,
+    "note": "E5",
+    "frequencyHz": 659.255,
+    "file": "string_05_E5.mp3",
+    "durationSeconds": 2.191,
+    "sourceSlice": 17,
+    "sourceFile": "Slice 17 [2020-04-05 181206].wav",
+    "sourceDetuneCents": 12,
+    "lateTransientRatio": 0.0426
+  },
+  {
+    "stringNumber": 6,
+    "note": "D5",
+    "frequencyHz": 587.33,
+    "file": "string_06_D5.mp3",
+    "durationSeconds": 2.998,
+    "sourceSlice": 16,
+    "sourceFile": "Slice 16 [2020-04-05 180735].wav",
+    "sourceDetuneCents": 16,
+    "lateTransientRatio": 0.119
+  },
+  {
+    "stringNumber": 7,
+    "note": "B4",
+    "frequencyHz": 493.883,
+    "file": "string_07_B4.mp3",
+    "durationSeconds": 1.852,
+    "sourceSlice": 15,
+    "sourceFile": "Slice 15 [2020-04-05 180534].wav",
+    "sourceDetuneCents": 12,
+    "lateTransientRatio": 0.1511
+  },
+  {
+    "stringNumber": 8,
+    "note": "A4",
+    "frequencyHz": 440.0,
+    "file": "string_08_A4.mp3",
+    "durationSeconds": 3.027,
+    "sourceSlice": 14,
+    "sourceFile": "Slice 14 [2020-04-05 180337].wav",
+    "sourceDetuneCents": 24,
+    "lateTransientRatio": 0.0618
+  },
+  {
+    "stringNumber": 9,
+    "note": "F#4",
+    "frequencyHz": 369.994,
+    "file": "string_09_Fs4.mp3",
+    "durationSeconds": 3.095,
+    "sourceSlice": 13,
+    "sourceFile": "Slice 13 [2020-04-05 180207].wav",
+    "sourceDetuneCents": 30,
+    "lateTransientRatio": 0.1296
+  },
+  {
+    "stringNumber": 10,
+    "note": "E4",
+    "frequencyHz": 329.628,
+    "file": "string_10_E4.mp3",
+    "durationSeconds": 3.395,
+    "sourceSlice": 12,
+    "sourceFile": "Slice 12 [2020-04-05 180012].wav",
+    "sourceDetuneCents": 15,
+    "lateTransientRatio": 0.0753
+  },
+  {
+    "stringNumber": 11,
+    "note": "D4",
+    "frequencyHz": 293.665,
+    "file": "string_11_D4.mp3",
+    "durationSeconds": 2.837,
+    "sourceSlice": 11,
+    "sourceFile": "Slice 11 [2020-04-05 175918].wav",
+    "sourceDetuneCents": 22,
+    "lateTransientRatio": 0.0716
+  },
+  {
+    "stringNumber": 12,
+    "note": "B3",
+    "frequencyHz": 246.942,
+    "file": "string_12_B3.mp3",
+    "durationSeconds": 3.471,
+    "sourceSlice": 10,
+    "sourceFile": "Slice 10 [2020-04-05 175844].wav",
+    "sourceDetuneCents": 23,
+    "lateTransientRatio": 0.0611
+  },
+  {
+    "stringNumber": 13,
+    "note": "A3",
+    "frequencyHz": 220.0,
+    "file": "string_13_A3.mp3",
+    "durationSeconds": 3.338,
+    "sourceSlice": 9,
+    "sourceFile": "Slice 9 [2020-04-05 175810].wav",
+    "sourceDetuneCents": 17,
+    "lateTransientRatio": 0.0881
+  },
+  {
+    "stringNumber": 14,
+    "note": "F#3",
+    "frequencyHz": 184.997,
+    "file": "string_14_Fs3.mp3",
+    "durationSeconds": 4.456,
+    "sourceSlice": 8,
+    "sourceFile": "Slice 8 [2020-04-05 175630].wav",
+    "sourceDetuneCents": 18,
+    "lateTransientRatio": 0.0831
+  },
+  {
+    "stringNumber": 15,
+    "note": "E3",
+    "frequencyHz": 164.814,
+    "file": "string_15_E3.mp3",
+    "durationSeconds": 3.767,
+    "sourceSlice": 7,
+    "sourceFile": "Slice 7 [2020-04-05 175522].wav",
+    "sourceDetuneCents": 15,
+    "lateTransientRatio": 0.1624
+  },
+  {
+    "stringNumber": 16,
+    "note": "D3",
+    "frequencyHz": 146.832,
+    "file": "string_16_D3.mp3",
+    "durationSeconds": 4.672,
+    "sourceSlice": 6,
+    "sourceFile": "Slice 6 [2020-04-05 175428].wav",
+    "sourceDetuneCents": 7,
+    "lateTransientRatio": 0.0985
+  },
+  {
+    "stringNumber": 17,
+    "note": "B2",
+    "frequencyHz": 123.471,
+    "file": "string_17_B2.mp3",
+    "durationSeconds": 4.548,
+    "sourceSlice": 5,
+    "sourceFile": "Slice 5 [2020-04-05 175329].wav",
+    "sourceDetuneCents": 0,
+    "lateTransientRatio": 0.1437
+  },
+  {
+    "stringNumber": 18,
+    "note": "A2",
+    "frequencyHz": 110.0,
+    "file": "string_18_A2.mp3",
+    "durationSeconds": 4.09,
+    "sourceSlice": 4,
+    "sourceFile": "Slice 4 [2020-04-05 174143].wav",
+    "sourceDetuneCents": 19,
+    "lateTransientRatio": 0.0558
+  },
+  {
+    "stringNumber": 19,
+    "note": "F#2",
+    "frequencyHz": 92.499,
+    "file": "string_19_Fs2.mp3",
+    "durationSeconds": 4.848,
+    "sourceSlice": 3,
+    "sourceFile": "Slice 3 [2020-04-05 174102].wav",
+    "sourceDetuneCents": 28,
+    "lateTransientRatio": 0.0816
+  },
+  {
+    "stringNumber": 20,
+    "note": "E2",
+    "frequencyHz": 82.407,
+    "file": "string_20_E2.mp3",
+    "durationSeconds": 2.64,
+    "sourceSlice": 2,
+    "sourceFile": "Slice 2 [2020-04-05 174301].wav",
+    "sourceDetuneCents": 20,
+    "lateTransientRatio": 0.1378
+  },
+  {
+    "stringNumber": 21,
+    "note": "D2",
+    "frequencyHz": 73.416,
+    "file": "string_21_D2.mp3",
+    "durationSeconds": 4.021,
+    "sourceSlice": 1,
+    "sourceFile": "Slice 1 [2020-04-05 175248].wav",
+    "sourceDetuneCents": 25,
+    "lateTransientRatio": 0.0833
+  }
+]
+
