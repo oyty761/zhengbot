@@ -18,13 +18,34 @@ TRUNCATE TABLE `digital_asset`;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 1. 数字资源
-INSERT INTO `digital_asset` (`id`, `asset_kind`, `storage_uri`, `mime_type`, `duration_ms`, `created_at`) VALUES
-(1, 'MODEL', 'https://example.com/assets/guzheng_model.glb', 'model/gltf-binary', NULL, NOW(3)),
-(2, 'IMAGE', 'https://example.com/assets/string.png', 'image/png', NULL, NOW(3)),
-(3, 'IMAGE', 'https://example.com/assets/bridge.png', 'image/png', NULL, NOW(3)),
-(4, 'IMAGE', 'https://example.com/assets/soundboard.png', 'image/png', NULL, NOW(3)),
-(5, 'AUDIO', 'https://example.com/audio/string_5.mp3', 'audio/mpeg', 3000, NOW(3)),
-(6, 'AUDIO', 'https://example.com/audio/string_1.mp3', 'audio/mpeg', 3000, NOW(3));
+-- 琴弦音频存放在 src/main/resources/static/assets/audio/guzheng/，
+-- Spring Boot 对外访问地址为 /assets/audio/guzheng/{文件名}。
+INSERT INTO `digital_asset` (`id`, `asset_kind`, `storage_uri`, `mime_type`, `checksum_sha256`, `duration_ms`, `created_at`) VALUES
+(1, 'MODEL', 'https://example.com/assets/guzheng_model.glb', 'model/gltf-binary', NULL, NULL, NOW(3)),
+(2, 'IMAGE', 'https://example.com/assets/string.png', 'image/png', NULL, NULL, NOW(3)),
+(3, 'IMAGE', 'https://example.com/assets/bridge.png', 'image/png', NULL, NULL, NOW(3)),
+(4, 'IMAGE', 'https://example.com/assets/soundboard.png', 'image/png', NULL, NULL, NOW(3)),
+(5,  'AUDIO', '/assets/audio/guzheng/string_01_D6.mp3',  'audio/mpeg', '9e5de717eef5e0f017a23ba150c56edcc4ab1b6d341715ff6d5a961158ef51df', 2534, NOW(3)),
+(6,  'AUDIO', '/assets/audio/guzheng/string_02_B5.mp3',  'audio/mpeg', '6047cfb14f8382594301f51afa81c20c0f23f5771c690fa380a05dc8e7efef9a', 2926, NOW(3)),
+(7,  'AUDIO', '/assets/audio/guzheng/string_03_A5.mp3',  'audio/mpeg', '2d0825192a16286f1398ced841f3419ec844376d7ebeec0acd59cd510341b064', 2612, NOW(3)),
+(8,  'AUDIO', '/assets/audio/guzheng/string_04_Fs5.mp3', 'audio/mpeg', 'eb9b362852876b7568a865fd43b35848db77673a1dc2a3deb4df4116cd0985b9', 3291, NOW(3)),
+(9,  'AUDIO', '/assets/audio/guzheng/string_05_E5.mp3',  'audio/mpeg', 'a015b57945e27e74c5e5dd3e6f1e354b54939f8234f16d31293c64ef3ea10315', 2220, NOW(3)),
+(10, 'AUDIO', '/assets/audio/guzheng/string_06_D5.mp3',  'audio/mpeg', 'a0d7a264bda0e8632820ad0727e7cacf191f2f2c8c6452f27d6c42c6165890bf', 3030, NOW(3)),
+(11, 'AUDIO', '/assets/audio/guzheng/string_07_B4.mp3',  'audio/mpeg', '0a00056a9ac3e1549699104dcc62df477bb409268469d70bb6904926941f465e', 1881, NOW(3)),
+(12, 'AUDIO', '/assets/audio/guzheng/string_08_A4.mp3',  'audio/mpeg', '7ef66f6e957546548f606adfef5afdebc35efdea68aeb92ee7b85085121f6896', 3056, NOW(3)),
+(13, 'AUDIO', '/assets/audio/guzheng/string_09_Fs4.mp3', 'audio/mpeg', 'f6c3561f01ed56b831b7423a59cb6361877febc334ab47239cbeeaf9df1eb4cd', 3135, NOW(3)),
+(14, 'AUDIO', '/assets/audio/guzheng/string_10_E4.mp3',  'audio/mpeg', '4376ed7f52e8c294dccdb741c7d7ae7e4b45740df642c1182c93c983c48082de', 3422, NOW(3)),
+(15, 'AUDIO', '/assets/audio/guzheng/string_11_D4.mp3',  'audio/mpeg', '57056d7da4338a22a5d4b06a28e544c463260f49f71a819e70876e74bea5ef7f', 2873, NOW(3)),
+(16, 'AUDIO', '/assets/audio/guzheng/string_12_B3.mp3',  'audio/mpeg', 'b3098a3b84a14d38f41dd6c97c695760f912473160a5b59782ef006a50e0baa1', 3500, NOW(3)),
+(17, 'AUDIO', '/assets/audio/guzheng/string_13_A3.mp3',  'audio/mpeg', 'b8cae7ff81f80bad74a7aa2b50eb16bd52af4f622f3265b74634a6ed3651984c', 3370, NOW(3)),
+(18, 'AUDIO', '/assets/audio/guzheng/string_14_Fs3.mp3', 'audio/mpeg', '9542835273532a427363113a9c9b0ba6dff369fc72dcc77f382d6af3f80ff3d1', 4493, NOW(3)),
+(19, 'AUDIO', '/assets/audio/guzheng/string_15_E3.mp3',  'audio/mpeg', 'd6cb98b6c2c4be8da95e89b8c1e9fe2ada184009947a492d652fad612337db52', 3814, NOW(3)),
+(20, 'AUDIO', '/assets/audio/guzheng/string_16_D3.mp3',  'audio/mpeg', '2f2e208d6872fa84a3e3e4381a5c2f325dd4954941571f4b471fcae19e90d4c4', 4702, NOW(3)),
+(21, 'AUDIO', '/assets/audio/guzheng/string_17_B2.mp3',  'audio/mpeg', '4fbcca717a84e4b52db87aeffb0f75cc39a6b8eee163adb797ad83d9d15f485b', 4598, NOW(3)),
+(22, 'AUDIO', '/assets/audio/guzheng/string_18_A2.mp3',  'audio/mpeg', 'c900ccff48a8ad9c58210729b4b8b0b0bbb0184348063aeae0f5e9daccd8bade', 4127, NOW(3)),
+(23, 'AUDIO', '/assets/audio/guzheng/string_19_Fs2.mp3', 'audio/mpeg', '3b5f26bf26242131d109bc699c813d5ae0f8c5e69df964ee789b0181a7edd7b8', 4885, NOW(3)),
+(24, 'AUDIO', '/assets/audio/guzheng/string_20_E2.mp3',  'audio/mpeg', 'a1e9e050a31bbf59cac31380c0f261a17eaeb27c508a7d2e95bc47348382e5ea', 2691, NOW(3)),
+(25, 'AUDIO', '/assets/audio/guzheng/string_21_D2.mp3',  'audio/mpeg', 'b7b8d8358d2eafe2c2d182bb84e9dd08d94b1833cf9becf2e547b2ac7cc14b49', 4049, NOW(3));
 
 -- 2. 乐器部件（普通部件）
 INSERT INTO `instrument_part` (`id`, `part_code`, `part_kind`, `name`, `summary`, `function_text`, `position_text`, `performance_relation`, `display_order`, `enabled`) VALUES
@@ -61,8 +82,27 @@ INSERT INTO `part_resource` (`part_id`, `asset_id`, `resource_role`, `display_or
 (1, 2, 'DETAIL_IMAGE', 1),
 (2, 3, 'DETAIL_IMAGE', 1),
 (3, 4, 'DETAIL_IMAGE', 1),
-(4, 6, 'DEMO_AUDIO', 1),
-(8, 5, 'DEMO_AUDIO', 1);
+(4,  5,  'DEMO_AUDIO', 1),
+(5,  6,  'DEMO_AUDIO', 1),
+(6,  7,  'DEMO_AUDIO', 1),
+(7,  8,  'DEMO_AUDIO', 1),
+(8,  9,  'DEMO_AUDIO', 1),
+(9,  10, 'DEMO_AUDIO', 1),
+(10, 11, 'DEMO_AUDIO', 1),
+(11, 12, 'DEMO_AUDIO', 1),
+(12, 13, 'DEMO_AUDIO', 1),
+(13, 14, 'DEMO_AUDIO', 1),
+(14, 15, 'DEMO_AUDIO', 1),
+(15, 16, 'DEMO_AUDIO', 1),
+(16, 17, 'DEMO_AUDIO', 1),
+(17, 18, 'DEMO_AUDIO', 1),
+(18, 19, 'DEMO_AUDIO', 1),
+(19, 20, 'DEMO_AUDIO', 1),
+(20, 21, 'DEMO_AUDIO', 1),
+(21, 22, 'DEMO_AUDIO', 1),
+(22, 23, 'DEMO_AUDIO', 1),
+(23, 24, 'DEMO_AUDIO', 1),
+(24, 25, 'DEMO_AUDIO', 1);
 
 -- 5. 琴弦音高配置
 -- 与 JPT 1.0 的 D-pentatonic 21 弦映射完全一致

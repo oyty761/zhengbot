@@ -26,10 +26,19 @@
 ```
 
 `database/database_v3(JPT)/guzheng_experience_jpt.sql` 会重建新库中的表，已有正式数据时不要重复执行。
-`seed_data.sql` 会重置乐器探秘演示数据，也只应在开发或测试环境执行。
+`seed_data.sql` 会重置乐器探秘演示数据，也只应在开发或测试环境执行；其中已经登记了 21 根琴弦的真实单音 MP3。
 
-`songbook_demo_data.sql` 和 `jpt_reference_data.sql` 可以重复执行，不会重复创建同名歌曲、描述词和调弦数据。脚本中的资源地址是占位地址，
-接入真实图片、音频和机器人曲谱后需要替换。
+已有数据库不需要重建，直接执行可重复运行的增量脚本：
+
+```text
+guzheng_string_audio_data.sql
+```
+
+该脚本会登记 21 条 `digital_asset`，并用 `part_resource.resource_role='DEMO_AUDIO'`
+分别关联到 `STRING_01` 至 `STRING_21`。MP3 实体文件位于
+`src/main/resources/static/assets/audio/guzheng/`。
+
+`songbook_demo_data.sql` 和 `jpt_reference_data.sql` 可以重复执行，不会重复创建同名歌曲、描述词和调弦数据。歌曲图片、预览音频和机器人曲谱仍使用占位地址，接入真实资源后需要替换。
 
 ## 启动
 
